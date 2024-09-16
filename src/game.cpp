@@ -1,6 +1,9 @@
 #include "game.h"
 #include <iostream>
 #include <unordered_map>
+#include <random>
+
+bool gameEnded = false;
 
 Game::Game() {
     // Always initialize with 2 players
@@ -10,31 +13,38 @@ Game::Game() {
 
 void Game::play() {
     startGame();
-    bool gameEnded = false;
-    Player* largestCollectionPlayer = nullptr;
     while (!gameEnded) {
+        table.printTable();
         for (Player& player : players) {
+            if (gameEnded) break;
+            player.printHand();
+            player.printCollection();
+            std::cout << std::endl;
             if (!startTurn(player)){
                 //winner by empty deck
-                gameEnded = true;
-                largestCollectionPlayer = &player;
+                endGame();
                 break;
             }
             if (checkForWin(player)) {
                 //winner by complete collection
+                std::cout <<player.getName() << " wins!" << std::endl;
                 gameEnded = true;  
-                std::cout <<player.getName() << "won!";
                 break;
             }
         }
     }
+}
+
+void Game::endGame() {
+    gameEnded = true;
+    Player* largestCollectionPlayer = &players.front();
     if (largestCollectionPlayer) {
         for (Player& player : players) {
             if (player.getCollection().size() > largestCollectionPlayer->getCollection().size()) {
                 largestCollectionPlayer = &player;
             }
         }
-        std::cout << largestCollectionPlayer->getName() << " won!" << std::endl;
+        std::cout << "The deck is empty, " << largestCollectionPlayer->getName() << " wins!" << std::endl;
     } 
 }
 
@@ -74,35 +84,37 @@ void Game::startGame() {
 }
 
 bool Game::startTurn(Player& player) {
-    player.playCard();
-    player.playFamily();
+    playCards(player);
+    if (!gameEnded){
+        playFamily(player);
 
-    //Check if the hand of the player is empty
-    if (player.getHand().size() == 0) {
-        //the hand of every player goes to discard pile
-        for (Player& player : players) {
-            for (const Card& card : player.getHand()) {
-                table.addCardToDiscard(card);
+        //Check if the hand of the player is empty
+        if (player.getHand().size() == 0) {
+            //the hand of every player goes to discard pile
+            for (Player& player : players) {
+                for (const Card& card : player.getHand()) {
+                    table.addCardToDiscard(card);
+                }
+                player.emptyHand();
             }
-            player.emptyHand();
-        }
-        //Check if there are enough cards to give players a new hand
-        int cardsRequired = players.size() * 8; 
-        if (table.getDrawSize() < cardsRequired) {
-            if (table.getDrawSize() + table.getDiscardSize() < cardsRequired){
+            //Check if there are enough cards to give players a new hand
+            int cardsRequired = players.size() * 8; 
+            if (table.getDrawSize() < cardsRequired) {
+                if (table.getDrawSize() + table.getDiscardSize() < cardsRequired){
+                    return false;
+                }
+                table.reshuffleFromDiscardPile();
+            }
+            //Every player gets 8 new cards
+            for (Player& player : players) {
+                for (int i = 0; i < 8; i++) {
+                    player.drawCard(table.drawCard());
+                }
+            }
+            if (!startTurn(player)){ //current player gets another turn
                 return false;
-            }
-            table.reshuffleFromDiscardPile();
+            } 
         }
-        //Every player gets 8 new cards
-        for (Player& player : players) {
-            for (int i = 0; i <8; i++) {
-                player.drawCard(table.drawCard());
-            }
-        }
-        if (!startTurn(player)){ //current player gets another turn
-            return false;
-        } 
     }
     return true;
 }
@@ -133,17 +145,90 @@ bool Game::checkForWin(Player& player) {
     return false;
 }
 
-bool Game::handleEmptyDeck(const Card& card) {
-    if (card.getBirdType() == "Empty") {
-        table.reshuffleFromDiscardPile();
+bool Game::resolveTable(Player& player, int row, const Card& card) {
+    //Give player the enclosed birds vector
+    std::pair<std::vector<Card>, bool> result = table.resolveRow(card, row);
+    if (result.second) {
+        endGame();
         return true;
-    } 
+    }
+    if (!result.first.empty()) {
+        for (const Card& card : result.first) {
+            player.drawCard(card);
+        }
+        return true;
+    }
     return false;
 }
 
-void Game::resolveTable(Player& player) {
-    //Give player the collected cards
-    //If no cards collected player may draw 2
-    //If only one kind of bird on a row add cards till there are 2 kinds of birds
+void Game::playCards(Player& player) {
+    int type = player.getType();
+    std::vector<Card> hand = player.getHand();
+    bool cardsCollected = false;
+    if (type == 0){ //random player
+        Card playingType = hand.front();
+        for (const Card& card : hand) {
+            if (card.getBirdType() == playingType.getBirdType()){
+                std::random_device rd;
+                std::mt19937 generator(rd());
+                std::uniform_int_distribution<int> distribution1(1, 4);
+                std::uniform_int_distribution<int> distribution2(0, 1);
+                int row = distribution1(generator);
+                int side = distribution2(generator);
+                table.addCard(card,row,side);
+                if (resolveTable(player,row,card)){
+                    cardsCollected = true;
+                }
+            }
+            if (gameEnded) break;
+        }
+        if (!gameEnded){
+            player.deleteType(playingType);
+            //draw 2 cards if no cards collected
+            if (!cardsCollected) {
+                Card newCard = table.drawCard();
+                if (newCard.getBirdType() == "Empty") {
+                    endGame();
+                } else {
+                    player.drawCard(newCard);
+                    newCard = table.drawCard();
+                    if (newCard.getBirdType() == "Empty") {
+                        endGame();
+                    } else {
+                        player.drawCard(newCard);
+                    } 
+                }
+            }
+        }
+    }
 }
-    
+
+void Game::playFamily(Player& player) {
+    int type = player.getType();
+    int numberInHand = 0;
+    bool familyPlayed = false;
+    std::vector<Card> hand = player.getHand();
+    if (type == 0){
+        for (const Card& card : hand) {
+            for (const Card& crd : hand) {
+                if (card.getBirdType() == crd.getBirdType()) numberInHand++;
+            }
+            if (numberInHand >= card.getBigFamily()){
+                player.collectBird(card);
+                player.collectBird(card);
+                for (int i = card.getBigFamily(); i > 0; i--){
+                    player.discardCard(card);
+                }
+                familyPlayed = true;
+            } else if (numberInHand >= card.getSmallFamily()){
+                player.collectBird(card);
+                for (int i = card.getSmallFamily(); i > 0; i--){
+                    player.discardCard(card);
+                }
+                familyPlayed = true;
+            }
+            if (familyPlayed) break;
+            numberInHand = 0;
+        }
+    }
+}

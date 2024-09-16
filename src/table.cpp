@@ -76,7 +76,7 @@ void Table::printTable(){
     for (const Card& card : fourthRow) {
         std::cout << card.getBirdType() << " ";
     }
-    std::cout << std::endl;
+    std::cout << std::endl<<std::endl;
 }
 
 void Table::initializeDrawPile() {
@@ -121,7 +121,7 @@ Card Table::drawCard() {
         drawPile.pop_back();
         return drawnCard;
     } else {
-        return Card("Empty", 0,0,0);
+        return Card("Empty", 0,0,10);
     }
 }
 
@@ -140,4 +140,65 @@ int Table::getDiscardSize(){
 
 int Table::getDrawSize(){
     return drawPile.size();
+}
+
+std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNumber){
+    std::vector<Card> collectedCards;
+    std::vector<Card> row;
+    bool deckEmpty = false;
+    //get a subvector of the enclosed birds
+    if (rowNumber == 1) {
+        row = firstRow;
+    } else if (rowNumber == 2) {
+        row = secondRow;
+    } else if (rowNumber == 3) {
+        row = thirdRow;
+    } else if (rowNumber == 4) {
+        row = fourthRow;
+    }
+    for (size_t i = 0; i < row.size(); ++i) {
+        for (size_t j = i + 1; j < row.size(); ++j) {
+            if (row[i].getBirdType() == row[j].getBirdType()) {
+                // Return the subvector between the two matching cards (exclusive)
+                collectedCards = std::vector<Card>(row.begin() + i + 1, row.begin() + j);
+                row.erase(row.begin() + i + 1, row.begin() + j);
+            }
+        }
+    }
+
+    //If only one kind of bird on a row add cards till there are 2 kinds of birds
+    bool allCardsMatch = true;
+    for (const Card& crd : row) {
+        if (card.getBirdType()!=crd.getBirdType()) {
+            allCardsMatch = false;
+            break;
+        }
+    }
+
+    if (allCardsMatch) {
+        Card newCard = drawCard();
+        if (newCard.getBirdType() == "Empty") {
+            deckEmpty = true;
+        }
+        while ((newCard.getBirdType() == card.getBirdType()) && newCard.getBirdType() != "Empty"){
+            row.push_back(newCard);
+            newCard = drawCard();
+        }
+        if (newCard.getBirdType() == "Empty") {
+            deckEmpty = true;
+        } else {
+            row.push_back(newCard);
+        }
+    }
+
+    if (rowNumber == 1) {
+        firstRow = row;
+    } else if (rowNumber == 2) {
+        secondRow = row;
+    } else if (rowNumber == 3) {
+        thirdRow = row;
+    } else if (rowNumber == 4) {
+        fourthRow = row;
+    }
+    return std::make_pair(collectedCards, deckEmpty);
 }

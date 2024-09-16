@@ -8,15 +8,19 @@
 class Player {
 public:
     Player(std::string name, int playerType);
-    void drawCard(const Card& card);
-    void playCard();
-    void playFamily();
-    void collectBird(const Card& card);
-    void printHand();
-    void emptyHand();
-    std::vector<Card> getCollection();
-    std::vector<Card> getHand();
     std::string getName();
+    std::vector<Card> getHand();
+    std::vector<Card> getCollection();
+    int getType();
+
+    void drawCard(const Card& card);
+    void collectBird(const Card& card);
+    void emptyHand();
+    void deleteType(const Card& card);
+    void discardCard(const Card& card);
+
+    void printHand();
+    void printCollection();
 
 private:
     std::string name;
