@@ -6,6 +6,7 @@
 class Card {
 public:
     Card(std::string birdType, int smallFamily, int bigFamily, int numberBirds);
+    Card();
     std::string getBirdType() const;
     int getSmallFamily() const;
     int getBigFamily() const;

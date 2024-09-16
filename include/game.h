@@ -3,8 +3,8 @@
 
 #include <vector>
 #include "player.h"
-#include "deck.h"
 #include "table.h"
+#include "card.h"
 
 class Game {
 public:
@@ -13,12 +13,13 @@ public:
 
 private:
     std::vector<Player> players;
-    Deck deck;
     Table table;
-
-    void startTurn(Player& player);
-    void checkForEndGame();
-    void handleEmptyDeck();
+    void startGame();
+    bool startTurn(Player& player);
+    bool checkForWin(Player& player);
+    bool checkEmptyHand(Player& player);
+    bool handleEmptyDeck(const Card& card);
+    void resolveTable(Player& player);
 };
 
 #endif
