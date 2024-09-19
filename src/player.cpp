@@ -1,13 +1,8 @@
-//---player 0---//
-//plays the first card in hand
-//always plays a family when able
-//draws 2 cards if no cards are collected
-
 #include "player.h"
 #include <algorithm>
 #include <iostream>
 
-Player::Player(std::string name, int playerType) : name(name), playerType(playerType) {}
+Player::Player(std::string name, int playerType, int index) : name(name), playerType(playerType), index(index){}
 
 void Player::drawCard(const Card& card) {
     hand.push_back(card);
@@ -18,7 +13,7 @@ void Player::collectBird(const Card& card) {
 }
 
 void Player::printHand() {
-    std::cout << "Hand " << name << ": ";
+    std::cout << "Hand of " << name << ": ";
     for (const Card& card : hand) {
         std::cout << card.getBirdType() << " ";
     }
@@ -26,7 +21,7 @@ void Player::printHand() {
 }
 
 void Player::printCollection() {
-    std::cout << "Collection " << name << ": ";
+    std::cout << "Collection of " << name << ": ";
     for (const Card& card : collection) {
         std::cout << card.getBirdType() << " ";
     }
@@ -41,7 +36,6 @@ std::vector<Card> Player::getHand() {
     return hand;
 }
 
-
 std::string Player::getName() {
     return name;
 }
@@ -50,10 +44,15 @@ int Player::getType() {
     return playerType;
 }
 
+int Player::getIndex() {
+    return index;
+}
+
 void Player::emptyHand() {
     hand.clear();
 }
 
+//uses a lambda function to compare each card with the birdType of the cardToRemove
 void Player::deleteType(const Card& cardToRemove) {
     std::string birdTypeToRemove = cardToRemove.getBirdType();
     hand.erase(std::remove_if(hand.begin(), hand.end(), 
@@ -61,15 +60,4 @@ void Player::deleteType(const Card& cardToRemove) {
             return card.getBirdType() == birdTypeToRemove;
         }), 
         hand.end());
-}
-
-void Player::discardCard(const Card& cardToRemove) {
-    std::string birdTypeToRemove = cardToRemove.getBirdType();
-    auto it = std::find_if(hand.begin(), hand.end(),
-        [&birdTypeToRemove](const Card& card) {
-            return card.getBirdType() == birdTypeToRemove;
-        });
-
-    // Erase the card
-    hand.erase(it);
 }

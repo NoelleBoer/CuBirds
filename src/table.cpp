@@ -7,30 +7,49 @@
 
 Table::Table() {}
 
-void Table::addCard(const Card& card, int rowNumber, bool side) {
+//First checks in which row the cards should be added
+//Then checks on which side the cards should be added
+//Then adds the specified number of cards in the right place
+void Table::addCards(const Card& card, int rowNumber, bool side, int numberOfCards) {
     if (rowNumber == 1) {
         if (!side) {
-            firstRow.insert(firstRow.begin(),card);
+            for (int i = 0; i < numberOfCards; i++) {
+                firstRow.insert(firstRow.begin(),card);
+            }
         } else {
-            firstRow.push_back(card);
+            for (int i = 0; i < numberOfCards; i++){
+                firstRow.push_back(card);
+            }
         } 
     } else if (rowNumber == 2) {
         if (!side) {
-            secondRow.insert(secondRow.begin(),card);
+            for (int i = 0; i < numberOfCards; i++) {
+                secondRow.insert(secondRow.begin(),card);
+            }
         } else {
-            secondRow.push_back(card);
+            for (int i = 0; i < numberOfCards; i++){
+                secondRow.push_back(card);
+            }
         } 
     } else if (rowNumber == 3) {
         if (!side) {
-            thirdRow.insert(thirdRow.begin(),card);
+            for (int i = 0; i < numberOfCards; i++) {
+                thirdRow.insert(thirdRow.begin(),card);
+            }
         } else {
-            thirdRow.push_back(card);
+            for (int i = 0; i < numberOfCards; i++) {
+                thirdRow.push_back(card);
+            }
         } 
     } else if (rowNumber == 4) {
         if (!side) {
-            fourthRow.insert(fourthRow.begin(),card);
+            for (int i = 0; i < numberOfCards; i++){
+                fourthRow.insert(fourthRow.begin(),card);
+            }
         } else {
-            fourthRow.push_back(card);
+            for (int i = 0; i < numberOfCards; i++){
+                fourthRow.push_back(card);
+            }
         } 
     }
 }
@@ -129,8 +148,8 @@ void Table::reshuffleFromDiscardPile() {
     std::vector<Card> discardPile = getDiscardPile();
     if (!discardPile.empty()) {
         drawPile.insert(drawPile.end(), discardPile.begin(), discardPile.end());  // Move discard pile into the deck
-        shuffleDrawPile();
-        clearDiscardPile();  // Clear discard pile after reshuffling
+        shuffleDrawPile(); // Shuffle the new draw pile
+        clearDiscardPile(); // Clear the discard pile
     }
 }
 
@@ -146,7 +165,8 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
     std::vector<Card> collectedCards;
     std::vector<Card> row;
     bool deckEmpty = false;
-    //get a subvector of the enclosed birds
+
+    //Get the specified row
     if (rowNumber == 1) {
         row = firstRow;
     } else if (rowNumber == 2) {
@@ -156,6 +176,7 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
     } else if (rowNumber == 4) {
         row = fourthRow;
     }
+    // Get a subvector of the enclosed birds
     for (size_t i = 0; i < row.size(); ++i) {
         for (size_t j = i + 1; j < row.size(); ++j) {
             if (row[i].getBirdType() == row[j].getBirdType()) {
@@ -166,7 +187,7 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
         }
     }
 
-    //If only one kind of bird on a row add cards till there are 2 kinds of birds
+    //Check if all cards on a row have the same birdtype
     bool allCardsMatch = true;
     for (const Card& crd : row) {
         if (card.getBirdType()!=crd.getBirdType()) {
@@ -175,6 +196,8 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
         }
     }
 
+    //If there is only one kind on a row add cards untill there are two types
+    //If the deck is empty the game should end
     if (allCardsMatch) {
         Card newCard = drawCard();
         if (newCard.getBirdType() == "Empty") {
@@ -191,6 +214,7 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
         }
     }
 
+    // Get the new row on the board
     if (rowNumber == 1) {
         firstRow = row;
     } else if (rowNumber == 2) {
