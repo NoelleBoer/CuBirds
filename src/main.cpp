@@ -2,14 +2,16 @@
 #include <iostream>
 
 int main() {
-    int nRepeats = 1000;
-    int arr[2] = {0, 0};
+    int nRepeats = 10000; // How many games are played
+    int arr[3] = {0, 0, 0};
     int winner;
     for (int i = 0; i<nRepeats; i++){
         Game game(0,0);
         winner = game.play();
         arr[winner]++;
     }
-    std::cout << "Array elements: " << arr[0] << ", " << arr[1] << std::endl;
+    std::cout << "Number of ties: " << arr[0] << std::endl;
+    std::cout << "Number of wins for player 1: " << arr[1] << std::endl;
+    std::cout << "Number of wins for player 2: " << arr[2] << std::endl;
     return 0;
 }

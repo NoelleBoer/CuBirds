@@ -19,14 +19,14 @@ public:
     /**
      * @brief Constructor for the game class
      * 
-     * In this constructer the players are made with a specified name, type and index
+     * In this constructer the players are made with a specified type and index
      */
     Game(int type1, int type2);
 
     /**
      * @brief Plays the game untill there is a winner
      * 
-     * @returns The index of the winning player
+     * @returns The index of the winning player or 0 for a tie
      */
     int play();
 
@@ -48,7 +48,7 @@ private:
      * 
      * When the deck is empty the player with the biggest collection is the winning player
      * 
-     * @return The index of the winning player
+     * @return The index of the winning player or 0 when there is a tie
      */
     int endGame();
 

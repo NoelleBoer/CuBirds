@@ -9,7 +9,7 @@
  * @class Player
  * @brief Represents a player in the CuBirds game.
  *
- * A player has a name, a type and a unique index.
+ * A player has a type and a unique index.
  */
 
 class Player {
@@ -17,20 +17,13 @@ public:
     /**
      * @brief Constructs a player with the specified parameters.
      * 
-     * This constructor initializes a player with the provided name,
-     * playerType and index.
-     * @param name The name of the player
+     * This constructor initializes a player with the provided playerType and index.
+     * 
      * @param playerType The type of player
      * @param index The index of the player
+     * The index should start at 1
      */
-    Player(std::string name, int playerType, int index);
-
-    /**
-     * @brief Returns the name of the player.
-     * 
-     * @return The name of a player as a string.
-     */
-    std::string getName();
+    Player(int playerType, int index);
 
     /**
      * @brief Gets the cards in the hand of a player.
@@ -91,6 +84,13 @@ public:
     void deleteType(const Card& card);
 
     /**
+     * @brief Deletes one card of birdType from card from hand
+     * 
+     * @param card The card that decides the birdType of the card that is to be deleted from hand
+     */
+    void discardCard(const Card& card);
+
+    /**
      * @brief prints the hand vector to the terminal
      * 
      */
@@ -103,7 +103,6 @@ public:
     void printCollection();
 
 private:
-    std::string name; /**< The name of the player. */
     std::vector<Card> hand; /**< The cards in the hand of the player. */
     std::vector<Card> collection; /**< The cards in the collection of the player. */
     int playerType; /**< The type of player. */

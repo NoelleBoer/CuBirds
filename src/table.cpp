@@ -104,25 +104,25 @@ void Table::initializeDrawPile() {
         drawPile.push_back(Card("Flamingo",2,3,7));
     }
     for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Owl", 3,4,10));
+        drawPile.push_back(Card("Owl",3,4,10));
     }
     for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Toucan", 3,4,10));
+        drawPile.push_back(Card("Toucan",3,4,10));
     }
     for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Duck", 4,6,13));
+        drawPile.push_back(Card("Duck",4,6,13));
     }
     for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Parrot", 4,6,13));
+        drawPile.push_back(Card("Parrot",4,6,13));
     }
     for (int i = 0; i<17; i++) {
-        drawPile.push_back(Card("Magpie", 5,7,17));
+        drawPile.push_back(Card("Magpie",5,7,17));
     }
     for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Reed Warbler", 6,9,20));
+        drawPile.push_back(Card("Reed Warbler",6,9,20));
     }
     for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Robin", 6,9,20));
+        drawPile.push_back(Card("Robin",6,9,20));
     }
 }
 
@@ -140,7 +140,7 @@ Card Table::drawCard() {
         drawPile.pop_back();
         return drawnCard;
     } else {
-        return Card("Empty", 0,0,10);
+        return Card("Empty",0,0,10);
     }
 }
 
@@ -176,13 +176,26 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
     } else if (rowNumber == 4) {
         row = fourthRow;
     }
+
     // Get a subvector of the enclosed birds
     for (size_t i = 0; i < row.size(); ++i) {
         for (size_t j = i + 1; j < row.size(); ++j) {
-            if (row[i].getBirdType() == row[j].getBirdType()) {
-                // Return the subvector between the two matching cards (exclusive)
-                collectedCards = std::vector<Card>(row.begin() + i + 1, row.begin() + j);
-                row.erase(row.begin() + i + 1, row.begin() + j);
+            if (row[i].getBirdType() == row[j].getBirdType() && j > i + 1) {
+                // Ensure that only cards of a different bird type are enclosed
+                bool differentBirdsEnclosed = true;
+                for (size_t k = i + 1; k < j; ++k) {
+                    if (row[k].getBirdType() == row[i].getBirdType()) {
+                        differentBirdsEnclosed = false;
+                        break;
+                    }
+                }
+
+                if (differentBirdsEnclosed) {
+                    collectedCards = std::vector<Card>(row.begin() + i + 1, row.begin() + j);
+                    // Erase the enclosed cards
+                    row.erase(row.begin() + i + 1, row.begin() + j);
+                    break;  // Exit the inner loop once matching cards are found and handled
+                }
             }
         }
     }
@@ -196,7 +209,7 @@ std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNu
         }
     }
 
-    //If there is only one kind on a row add cards untill there are two types
+    //If there is only one kind on a row, add cards untill there are two types
     //If the deck is empty the game should end
     if (allCardsMatch) {
         Card newCard = drawCard();

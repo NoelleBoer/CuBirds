@@ -5,19 +5,15 @@
 
 Game::Game(int type1, int type2) {
     // Always initialize with 2 players
-    players.push_back(Player("Player 1",type1,0));
-    players.push_back(Player("Player 2",type2,1));
+    players.push_back(Player(type1,1));
+    players.push_back(Player(type2,2));
 }
 
 int Game::play() {
     startGame();
     while (true) {
-        //table.printTable();
         for (Player& player : players) {
-            //player.printHand();
-            //player.printCollection();
-            //std::cout << table.getDiscardSize() + table.getDrawSize() << std::endl;
-            // Start the turn of a player, when this returns false the deck is empty and the game ends
+            //Start the turn of a player, when this returns false the deck is empty and the game ends
             if (!startTurn(player)) return endGame();
             // Check if a players' collection is complete, if it is that player wins and the game ends
             if (checkForWin(player)) return player.getIndex();
@@ -25,12 +21,27 @@ int Game::play() {
     }
 }
 
-//Find the player with the largest collection and return the index of this player
+//Find the player with the largest collection and return the index of this player, if there is a tie return 0
 int Game::endGame() {
+    // Assume there are at least two players
     Player* largestCollectionPlayer = &players.front();
+    bool isTie = true;  // Variable to track if there's a tie
+
     for (Player& player : players) {
-        if (player.getCollection().size() > largestCollectionPlayer->getCollection().size()) largestCollectionPlayer = &player;
+        if (player.getCollection().size() > largestCollectionPlayer->getCollection().size()) {
+            largestCollectionPlayer = &player;
+            isTie = false;  // Set to false if we find a larger collection
+        } else if (player.getCollection().size() != largestCollectionPlayer->getCollection().size()) {
+            isTie = false;  // If collections differ, it's not a tie
+        }
     }
+
+    // If it's a tie, return 0
+    if (isTie) {
+        return 0;
+    }
+
+    // Otherwise, return the index of the player with the largest collection
     return largestCollectionPlayer->getIndex();
 }
 
@@ -215,17 +226,21 @@ void Game::playFamily(Player& player) {
             if (numberInHand >= card.getBigFamily()){
                 player.collectBird(card);
                 player.collectBird(card);
-                for (int i = card.getBigFamily(); i > 0; i--){
+                for (int i = card.getBigFamily()-2; i > 0; i--){
                     table.addCardToDiscard(card);
                 }
-                player.deleteType(card);
+                for (int i = 0; i < card.getBigFamily(); i++){
+                    player.discardCard(card);
+                }
                 familyPlayed = true;
             } else if (numberInHand >= card.getSmallFamily()){
                 player.collectBird(card);
-                for (int i = card.getSmallFamily(); i > 0; i--){
+                for (int i = card.getSmallFamily()-1; i > 0; i--){
                     table.addCardToDiscard(card);
                 }
-                player.deleteType(card);
+                for (int i = 0; i < card.getSmallFamily(); i++){
+                    player.discardCard(card);
+                }
                 familyPlayed = true;
             }
             if (familyPlayed) break;

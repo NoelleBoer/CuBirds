@@ -16,3 +16,7 @@ Run the project:
 
 ## Usage
 The implementation is build for a 2 player version of CuBirds. (This could easily be changed to a 2+ player version). To test the different players you can change the playertype in main.cpp.
+
+## Implement 2+ version
+To change the number of players change the following functions
+main () in main.cpp

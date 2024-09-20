@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
-Player::Player(std::string name, int playerType, int index) : name(name), playerType(playerType), index(index){}
+Player::Player(int playerType, int index) : playerType(playerType), index(index){}
 
 void Player::drawCard(const Card& card) {
     hand.push_back(card);
@@ -13,7 +13,7 @@ void Player::collectBird(const Card& card) {
 }
 
 void Player::printHand() {
-    std::cout << "Hand of " << name << ": ";
+    std::cout << "Hand of " << index << ": ";
     for (const Card& card : hand) {
         std::cout << card.getBirdType() << " ";
     }
@@ -21,7 +21,7 @@ void Player::printHand() {
 }
 
 void Player::printCollection() {
-    std::cout << "Collection of " << name << ": ";
+    std::cout << "Collection of " << index << ": ";
     for (const Card& card : collection) {
         std::cout << card.getBirdType() << " ";
     }
@@ -34,10 +34,6 @@ std::vector<Card> Player::getCollection() {
 
 std::vector<Card> Player::getHand() {
     return hand;
-}
-
-std::string Player::getName() {
-    return name;
 }
 
 int Player::getType() {
@@ -60,4 +56,15 @@ void Player::deleteType(const Card& cardToRemove) {
             return card.getBirdType() == birdTypeToRemove;
         }), 
         hand.end());
+}
+
+void Player::discardCard(const Card& cardToRemove) {
+    std::string birdTypeToRemove = cardToRemove.getBirdType();
+    auto it = std::find_if(hand.begin(), hand.end(),
+        [&birdTypeToRemove](const Card& card) {
+            return card.getBirdType() == birdTypeToRemove;
+        });
+
+    // Erase the card
+    hand.erase(it);
 }
