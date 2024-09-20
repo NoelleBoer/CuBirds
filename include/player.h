@@ -84,13 +84,6 @@ public:
     void deleteType(const Card& card);
 
     /**
-     * @brief Deletes one card of birdType from card from hand
-     * 
-     * @param card The card that decides the birdType of the card that is to be deleted from hand
-     */
-    void discardCard(const Card& card);
-
-    /**
      * @brief prints the hand vector to the terminal
      * 
      */

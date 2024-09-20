@@ -57,14 +57,3 @@ void Player::deleteType(const Card& cardToRemove) {
         }), 
         hand.end());
 }
-
-void Player::discardCard(const Card& cardToRemove) {
-    std::string birdTypeToRemove = cardToRemove.getBirdType();
-    auto it = std::find_if(hand.begin(), hand.end(),
-        [&birdTypeToRemove](const Card& card) {
-            return card.getBirdType() == birdTypeToRemove;
-        });
-
-    // Erase the card
-    hand.erase(it);
-}

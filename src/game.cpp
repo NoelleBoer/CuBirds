@@ -226,21 +226,17 @@ void Game::playFamily(Player& player) {
             if (numberInHand >= card.getBigFamily()){
                 player.collectBird(card);
                 player.collectBird(card);
-                for (int i = card.getBigFamily()-2; i > 0; i--){
+                for (int i=0; i < numberInHand-2; i++){
                     table.addCardToDiscard(card);
                 }
-                for (int i = 0; i < card.getBigFamily(); i++){
-                    player.discardCard(card);
-                }
+                player.deleteType(card);
                 familyPlayed = true;
             } else if (numberInHand >= card.getSmallFamily()){
                 player.collectBird(card);
-                for (int i = card.getSmallFamily()-1; i > 0; i--){
+                for (int i=0; i < numberInHand-1; i++){
                     table.addCardToDiscard(card);
                 }
-                for (int i = 0; i < card.getSmallFamily(); i++){
-                    player.discardCard(card);
-                }
+                player.deleteType(card);
                 familyPlayed = true;
             }
             if (familyPlayed) break;
