@@ -42,9 +42,9 @@ public:
     /**
      * @brief Gets the type of a player
      * ---player 0---
-     * - plays the first card in hand
+     * - chooses a random card from hand and playes this type
      * - always plays a family when able
-     * - draws 2 cards if no cards are collected
+     * - 50% chance to draw cards when no cards are collected
      * 
      * @return The type of a player
      */
@@ -56,6 +56,13 @@ public:
      * @return The index of a player
      */
     int getIndex();
+
+    /**
+     * @brief Gets the number of cards in the hand of the player
+     * 
+     * @return Number of cards in hand of player
+     */
+    int getHandSize();
 
     /**
      * @brief Adds a card to the hand vector

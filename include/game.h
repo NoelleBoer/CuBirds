@@ -113,6 +113,27 @@ private:
      * @return Whether the player collected any cards
      */
     bool resolveTable(Player& player, int row, const Card& card);
+
+    /**
+     * @brief Playes cards for playerType 0
+     * 
+     * - chooses a random card from hand and playes this type
+     * - 50% chance to draw cards when no cards are collected
+     * 
+     * @param player Current player 
+     * 
+     */
+    void playRandomCards(Player& player);
+
+    /**
+     * @brief Playes family for playerType 0
+     * 
+     * - always plays a family when able (the one he finds first in hand)
+     * 
+     * @param player Current player 
+     * 
+     */
+    void playRandomFamily(Player& player);
 };
 
 #endif // GAME_H

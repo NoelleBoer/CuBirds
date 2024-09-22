@@ -48,6 +48,10 @@ void Player::emptyHand() {
     hand.clear();
 }
 
+int Player::getHandSize(){
+    return hand.size();
+}
+
 //uses a lambda function to compare each card with the birdType of the cardToRemove
 void Player::deleteType(const Card& cardToRemove) {
     std::string birdTypeToRemove = cardToRemove.getBirdType();

@@ -2,7 +2,7 @@
 #include <iostream>
 
 int main() {
-    int nRepeats = 10000; // How many games are played
+    int nRepeats = 1000; // How many games are played
     int arr[3] = {0, 0, 0};
     int winner;
     for (int i = 0; i<nRepeats; i++){

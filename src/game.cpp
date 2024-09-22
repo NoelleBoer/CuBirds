@@ -1,5 +1,7 @@
 #include "game.h"
 #include <iostream>
+#include <ctime>
+#include <cstdlib>
 #include <unordered_map>
 #include <random>
 
@@ -167,28 +169,47 @@ bool Game::resolveTable(Player& player, int row, const Card& card) {
 
 void Game::playCards(Player& player) {
     int type = player.getType();
+
+    if (type == 0){
+        playRandomCards(player);
+    }
+}
+
+void Game::playFamily(Player& player) {
+    int type = player.getType();
+
+    if (type == 0){
+        playRandomFamily(player);
+    }
+}
+
+void Game::playRandomCards(Player& player) {
     std::vector<Card> hand = player.getHand();
     bool cardsCollected = false;
     int numberOfType = 0;
 
-    if (type == 0){
-        Card playingType = hand.front();
-        for (const Card& card : hand) {
-            if (card.getBirdType() == playingType.getBirdType()) numberOfType++;
-        }
-        // Generate a random row and side to play the cards
-        std::random_device rd;
-        std::mt19937 generator(rd());
-        std::uniform_int_distribution<int> distribution1(1, 4);
-        std::uniform_int_distribution<int> distribution2(0, 1);
-        int row = distribution1(generator);
-        int side = distribution2(generator);
+    // Choose a card to play
+    std::srand(static_cast<unsigned int>(std::time(0))); // Random seed
+    int randomIndex = std::rand() % player.getHandSize();
+    Card playingType = hand[randomIndex];
+    for (const Card& card : hand) {
+        if (card.getBirdType() == playingType.getBirdType()) numberOfType++;
+    }
 
-        table.addCards(playingType,row,side,numberOfType);
-        if (resolveTable(player,row,playingType)) cardsCollected = true;
-        player.deleteType(playingType);
-        //draw 2 cards if no cards collected
-        if (!cardsCollected) {
+    // Generate a random row and side to play the cards
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<int> distribution1(1, 4);
+    std::uniform_int_distribution<int> distribution2(0, 1);
+    int row = distribution1(generator);
+    int side = distribution2(generator);
+
+    table.addCards(playingType,row,side,numberOfType);
+    if (resolveTable(player,row,playingType)) cardsCollected = true;
+    player.deleteType(playingType);
+    //draw 2 cards if no cards collected
+    if (!cardsCollected) {
+        if (std::rand() % 2 == 0) {  // 50% chance to collect cards
             Card newCard = table.drawCard();
             if (newCard.getBirdType() == "Empty") {
                 endGame();
@@ -205,41 +226,37 @@ void Game::playCards(Player& player) {
     }
 }
 
-void Game::playFamily(Player& player) {
-    int type = player.getType();
+void Game::playRandomFamily(Player& player) {
     int numberInHand = 0;
     bool familyPlayed = false; //only one family can be played in a turn, so stop turn when this variable is true
     std::vector<Card> hand = player.getHand();
-
-    if (type == 0){
-        //Check for every card in hand
-        for (const Card& card : hand) {
-            numberInHand = 0;
-            //How many of that card the player has
-            for (const Card& crd : hand) {
-                if (card.getBirdType() == crd.getBirdType()) numberInHand++;
-            }
-
-            //If that number is enough for a big family, play this family
-            //Else if that number is enough for a small family, play this family
-            //Else do nothing
-            if (numberInHand >= card.getBigFamily()){
-                player.collectBird(card);
-                player.collectBird(card);
-                for (int i=0; i < numberInHand-2; i++){
-                    table.addCardToDiscard(card);
-                }
-                player.deleteType(card);
-                familyPlayed = true;
-            } else if (numberInHand >= card.getSmallFamily()){
-                player.collectBird(card);
-                for (int i=0; i < numberInHand-1; i++){
-                    table.addCardToDiscard(card);
-                }
-                player.deleteType(card);
-                familyPlayed = true;
-            }
-            if (familyPlayed) break;
+    //Check for every card in hand
+    for (const Card& card : hand) {
+        numberInHand = 0;
+        //How many of that card the player has
+        for (const Card& crd : hand) {
+            if (card.getBirdType() == crd.getBirdType()) numberInHand++;
         }
+
+        //If that number is enough for a big family, play this family
+        //Else if that number is enough for a small family, play this family
+        //Else do nothing
+        if (numberInHand >= card.getBigFamily()){
+            player.collectBird(card);
+            player.collectBird(card);
+            for (int i=0; i < numberInHand-2; i++){
+                table.addCardToDiscard(card);
+            }
+            player.deleteType(card);
+            familyPlayed = true;
+        } else if (numberInHand >= card.getSmallFamily()){
+            player.collectBird(card);
+            for (int i=0; i < numberInHand-1; i++){
+                table.addCardToDiscard(card);
+            }
+            player.deleteType(card);
+            familyPlayed = true;
+        }
+        if (familyPlayed) break;
     }
 }
