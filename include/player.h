@@ -41,10 +41,16 @@ public:
 
     /**
      * @brief Gets the type of a player
+     * 
      * ---player 0---
      * - chooses a random card from hand and playes this type
-     * - always plays a family when able
+     * - chooses first card in a random hand which is able to form a family, tries big family first
      * - 50% chance to draw cards when no cards are collected
+     * 
+     * ---player 1---
+     * - Plays birds to get most cards from the board
+     * - Tries to play most valuable family (type with least cards in the game) first
+     * - Always draws cards when no cards are collected
      * 
      * @return The type of a player
      */
@@ -89,6 +95,14 @@ public:
      * @param card The card that decides the birdType that is to be deleted from hand
      */
     void deleteType(const Card& card);
+
+    /**
+     * @brief Shuffles the hand
+     * 
+     * Used to get a random front() card 
+     * 
+     */
+    void shuffleHand();
 
     /**
      * @brief prints the hand vector to the terminal

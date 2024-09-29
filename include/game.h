@@ -134,6 +134,33 @@ private:
      * 
      */
     void playRandomFamily(Player& player);
+
+    /**
+     * @brief Playes cards for playerType 1
+     * 
+     * - chooses a random card from hand and playes this type
+     * - 50% chance to draw cards when no cards are collected
+     * 
+     * @param player Current player 
+     * 
+     */
+    void playGreedyCards(Player& player);
+
+    /**
+     * @brief Playes family for playerType 1
+     * 
+     * - always plays a family when able (the one he finds first in hand)
+     * 
+     * @param player Current player 
+     * 
+     */
+    void playGreedyFamily(Player& player);
+
+    /**
+     * @brief Checks how many birds are enclosed on a row
+     * Aanvullen
+     */
+    int birdsEnclosed(std::vector<Card> row, const Card& card);
 };
 
 #endif // GAME_H

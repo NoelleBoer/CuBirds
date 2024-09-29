@@ -1,6 +1,8 @@
 #include "player.h"
 #include <algorithm>
+#include <random>
 #include <iostream>
+#include <ctime>
 
 Player::Player(int playerType, int index) : playerType(playerType), index(index){}
 
@@ -26,6 +28,12 @@ void Player::printCollection() {
         std::cout << card.getBirdType() << " ";
     }
     std::cout << std::endl;
+}
+
+void Player::shuffleHand() {
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(hand.begin(), hand.end(), g);
 }
 
 std::vector<Card> Player::getCollection() {
