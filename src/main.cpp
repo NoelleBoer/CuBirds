@@ -2,16 +2,30 @@
 #include <iostream>
 
 int main() {
-    int nRepeats = 10; // How many games are played
-    int arr[3] = {0, 0, 0};
-    int winner;
+    int nRepeats = 1000; // How many games are played
+    int arr[3][3] = {0, 0, 0};
+    std::pair<int, int> winner;
+    std::string rowLabels[3] = {"Empty", "Seven", "2x3  "};
     for (int i = 0; i<nRepeats; i++){
-        Game game(0,1);
+        Game game(1,2);
         winner = game.play();
-        arr[winner]++;
+        arr[winner.first][winner.second]++;
     }
-    std::cout << "Number of ties: " << arr[0] << std::endl;
-    std::cout << "Number of wins for player 1: " << arr[1] << std::endl;
-    std::cout << "Number of wins for player 2: " << arr[2] << std::endl;
+
+    std::cout << "      Tie  P1   P2" << std::endl;
+    std::cout << "    -----------------" << std::endl;
+
+    // Print the array with the row labels
+    for (int i = 0; i < 3; i++) {
+        // Print row label
+        std::cout << rowLabels[i] << " | ";
+        
+        // Print the array elements
+        for (int j = 0; j < 3; j++) {
+            std::cout << arr[i][j] << "   ";
+        }
+        
+        std::cout << std::endl;
+    }
     return 0;
 }

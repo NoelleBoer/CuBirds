@@ -11,14 +11,16 @@ Game::Game(int type1, int type2) {
     players.push_back(Player(type2,2));
 }
 
-int Game::play() {
+std::pair<int, int> Game::play() {
+    int gameEnds;
     startGame();
     while (true) {
         for (Player& player : players) {
             //Start the turn of a player, when this returns false the deck is empty and the game ends
-            if (!startTurn(player)) return endGame();
+            if (!startTurn(player)) return std::make_pair(endGame(), 0);
             // Check if a players' collection is complete, if it is that player wins and the game ends
-            if (checkForWin(player)) return player.getIndex();
+            gameEnds = checkForWin(player);
+            if (gameEnds!=0) return std::make_pair(player.getIndex(), gameEnds);
         }
     }
 }
@@ -121,7 +123,7 @@ bool Game::startTurn(Player& player) {
     return true;
 }
 
-bool Game::checkForWin(Player& player) {
+int Game::checkForWin(Player& player) {
     std::vector<Card> collection;
     std::unordered_map<std::string, int> countMap;
     collection = player.getCollection();
@@ -134,7 +136,7 @@ bool Game::checkForWin(Player& player) {
 
     // Check for 7 different items
     if (countMap.size() == 7) {
-        return true;  // 7 different things
+        return 1;  // 7 different things
     }
 
     // Check for two sets of 3 identical items
@@ -145,9 +147,9 @@ bool Game::checkForWin(Player& player) {
         }
     }
     if (triplesCount == 2) {
-        return true; 
+        return 2; 
     }
-    return false;
+    return 0;
 }
 
 bool Game::resolveTable(Player& player, int row, const Card& card) {
@@ -171,7 +173,7 @@ void Game::playCards(Player& player) {
     int type = player.getType();
 
     if (type == 0) playRandomCards(player); 
-    else if (type == 1) playGreedyCards(player);
+    else if (type == 1 || type == 2) playGreedyCards(player);
 }
 
 void Game::playFamily(Player& player) {
@@ -179,6 +181,7 @@ void Game::playFamily(Player& player) {
 
     if (type == 0) playRandomFamily(player);
     else if (type == 1) playGreedyFamily(player);
+    else if (type == 2) playGreedyBigFamily(player);
 }
 
 void Game::playRandomCards(Player& player) {
@@ -421,6 +424,48 @@ void Game::playGreedyFamily(Player& player){
         if (familyPlayed) break;
     }
 }
+
+void Game::playGreedyBigFamily(Player& player){
+    int numberInHand = 0;
+    bool familyPlayed = false; //only one family can be played in a turn, so stop turn when this variable is true
+    std::vector<Card> hand = player.getHand();
+    //Try to play the most valuable family first
+    for (int i = 20; i>0; i--){
+        //Check for every card in hand
+        for (const Card& card : hand) {
+            if (card.getNumberBirds() == i){
+                numberInHand = 0;
+                //How many of that card the player has
+                for (const Card& crd : hand) {
+                    if (card.getBirdType() == crd.getBirdType()) numberInHand++;
+                }
+
+                //If that number is enough for a big family, play this family
+                //Else if that number is enough for a small family, play this family
+                //Else do nothing
+                if (numberInHand >= card.getBigFamily()){
+                    player.collectBird(card);
+                    player.collectBird(card);
+                    for (int j=0; j < numberInHand-2; j++){
+                        table.addCardToDiscard(card);
+                    }
+                    player.deleteType(card);
+                    familyPlayed = true;
+                } else if (numberInHand >= card.getSmallFamily()){
+                    player.collectBird(card);
+                    for (int j=0; j < numberInHand-1; j++){
+                        table.addCardToDiscard(card);
+                    }
+                    player.deleteType(card);
+                    familyPlayed = true;
+                }
+            }
+            if (familyPlayed) break;
+        }
+        if (familyPlayed) break;
+    }
+}
+
 
 int Game::birdsEnclosed(std::vector<Card> row, const Card& card){
     int enclosedBirds = 0;

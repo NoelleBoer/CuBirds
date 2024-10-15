@@ -26,9 +26,13 @@ public:
     /**
      * @brief Plays the game untill there is a winner
      * 
-     * @returns The index of the winning player or 0 for a tie
+     * @returns winning player and the way this player won
+     * 
+     * First int is the index of the winning player or 0 for a tie
+     * Second int is 0 for win by empty deck, 1 for win by 7 different species and 2 for win by 2x3 birds
+     * 
      */
-    int play();
+    std::pair<int, int> play();
 
 private:
     std::vector<Player> players; /**< Vector of players of the game. */
@@ -75,9 +79,13 @@ private:
      * If there is a player with seven different birds or two sets of three birds in his collection
      * this player wins.
      * 
-     * @return Whether this player wins the game with his current collection
+     * @return whether and how a player wins
+     * 
+     * return 0 if the player did not win
+     * return 1 if the player won by having 7 different species
+     * return 2 if the player won by having 2 sets of at least 3 birds
      */
-    bool checkForWin(Player& player);
+    int checkForWin(Player& player);
 
     /**
      * @brief Plays cards on the board
@@ -161,6 +169,7 @@ private:
      * Aanvullen
      */
     int birdsEnclosed(std::vector<Card> row, const Card& card);
+    void playGreedyBigFamily(Player& player);
 };
 
 #endif // GAME_H
