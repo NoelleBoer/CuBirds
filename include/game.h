@@ -37,6 +37,7 @@ public:
 private:
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
+    int turn = 0; /**< Which turn are the players on */
 
     /**
      * @brief Generates the beginning conditions of a game
@@ -170,6 +171,8 @@ private:
      */
     int birdsEnclosed(std::vector<Card> row, const Card& card);
     void playGreedyBigFamily(Player& player);
+    void playSeven(Player& player);
+    void playTwoThree(Player& player);
 };
 
 #endif // GAME_H

@@ -49,6 +49,14 @@ int Game::endGame() {
     return largestCollectionPlayer->getIndex();
 }
 
+void Game::increaseTurn() {
+    turn++;
+}
+
+int Game::getTurn(){
+    return turn;
+}
+
 void Game::startGame() {
     table.initializeDrawPile();
     // start with 3 different cards in each row
@@ -173,7 +181,7 @@ void Game::playCards(Player& player) {
     int type = player.getType();
 
     if (type == 0) playRandomCards(player); 
-    else if (type == 1 || type == 2) playGreedyCards(player);
+    else if (type == 1 || type == 2 || type == 3 || type == 4) playGreedyCards(player);
 }
 
 void Game::playFamily(Player& player) {
@@ -182,6 +190,8 @@ void Game::playFamily(Player& player) {
     if (type == 0) playRandomFamily(player);
     else if (type == 1) playGreedyFamily(player);
     else if (type == 2) playGreedyBigFamily(player);
+    else if (type == 3) playTwoThree(player);
+    else if (type == 4) playSeven(player);
 }
 
 void Game::playRandomCards(Player& player) {
@@ -466,6 +476,179 @@ void Game::playGreedyBigFamily(Player& player){
     }
 }
 
+void Game::playTwoThree (Player& player){
+    int currentCollection[8] = {0};
+    std::string currentBirdType;
+    std::vector<Card> collection = player.getCollection();
+    std::vector<Card> hand = player.getHand();
+    int numberInHand = 0;
+    bool familyPlayed = false;
+    Card& currentCard = collection.front();
+    // Get an overview of the current collection
+    for (const Card& card : collection){
+        if (card.getBirdType() == "Flamingo") currentCollection[0]++;
+        else if (card.getBirdType() == "Owl") currentCollection[1]++;
+        else if (card.getBirdType() == "Toucan") currentCollection[2]++;
+        else if (card.getBirdType() == "Duck") currentCollection[3]++;
+        else if (card.getBirdType() == "Parrot") currentCollection[4]++;
+        else if (card.getBirdType() == "Magpie") currentCollection[5]++;
+        else if (card.getBirdType() == "Reed Warbler") currentCollection[6]++;
+        else if (card.getBirdType() == "Robin") currentCollection[7]++;
+    }
+    // First try to complete the collection by adding a big family
+    for (int i = 0; i<=7; i++){
+        if (currentCollection[i] == 1){
+            numberInHand = 0;
+            if (i == 0) currentBirdType = "Flamingo";
+            else if (i == 1) currentBirdType = "Owl";
+            else if (i == 2) currentBirdType = "Toucan";
+            else if (i == 3) currentBirdType = "Duck";
+            else if (i == 4) currentBirdType = "Parrot";
+            else if (i == 5) currentBirdType = "Magpie";
+            else if (i == 6) currentBirdType = "Reed Warbler";
+            else if (i == 7) currentBirdType = "Robin";
+            for (const Card& card : hand) {
+                if (card.getBirdType() == currentBirdType) numberInHand++;
+                currentCard = card;
+            }
+            if (numberInHand >= collection.front().getBigFamily()) {
+                player.collectBird(currentCard);
+                player.collectBird(currentCard);
+                for (int j=0; j < numberInHand-2; j++){
+                    table.addCardToDiscard(currentCard);
+                }
+                player.deleteType(currentCard);
+                familyPlayed = true;
+            }
+        if (familyPlayed) break;
+        }
+    }
+    // Then try to complete a collection by adding a small family
+    if (!familyPlayed){
+        for (int i = 0; i<=7; i++){
+            if (currentCollection[i] == 2) {
+                numberInHand = 0;
+                if (i == 0) currentBirdType = "Flamingo";
+                else if (i == 1) currentBirdType = "Owl";
+                else if (i == 2) currentBirdType = "Toucan";
+                else if (i == 3) currentBirdType = "Duck";
+                else if (i == 4) currentBirdType = "Parrot";
+                else if (i == 5) currentBirdType = "Magpie";
+                else if (i == 6) currentBirdType = "Reed Warbler";
+                else if (i == 7) currentBirdType = "Robin";
+                for (const Card& card : hand) {
+                    if (card.getBirdType() == currentBirdType) numberInHand++;
+                    currentCard = card;
+                }
+                if (numberInHand >= collection.front().getSmallFamily()) {
+                    player.collectBird(currentCard);
+                    player.collectBird(currentCard);
+                    for (int j=0; j < numberInHand-2; j++){
+                        table.addCardToDiscard(currentCard);
+                    }
+                    player.deleteType(currentCard);
+                    familyPlayed = true;
+                }
+            }
+            if (familyPlayed) break;
+        }
+    }
+    // Then try to add a card of a second kind to the collection
+    if (!familyPlayed) {
+        int numberSpecies = 0;
+        // Check if there is more than one species in the collection
+        for (int i = 0; i <= 7; i++){
+            if (currentCollection != 0) numberSpecies++;
+        }
+        if (numberSpecies == 1){
+            for (const Card& card : hand) {
+                if (card.getBirdType()!= collection.front().getBirdType()){
+                    //How many of that card the player has
+                    for (const Card& crd : hand) {
+                        if (card.getBirdType() == crd.getBirdType()) numberInHand++;
+                    }
+                    //If that number is enough for a big family, play this family
+                    //Else if that number is enough for a small family, play this family
+                    //Else do nothing
+                    if (numberInHand >= card.getBigFamily()){
+                        player.collectBird(card);
+                        player.collectBird(card);
+                        for (int j=0; j < numberInHand-2; j++){
+                            table.addCardToDiscard(card);
+                        }
+                        player.deleteType(card);
+                        familyPlayed = true;
+                    } else if (numberInHand >= card.getSmallFamily()){
+                        player.collectBird(card);
+                        for (int j=0; j < numberInHand-1; j++){
+                            table.addCardToDiscard(card);
+                        }
+                        player.deleteType(card);
+                        familyPlayed = true;
+                    }
+                    if (familyPlayed) break;
+                }
+                if (familyPlayed) break;
+            }
+        }
+    }
+}
+
+void Game::playSeven (Player& player){
+    int currentCollection[8] = {0};
+    std::string currentBirdType;
+    std::vector<Card> collection = player.getCollection();
+    std::vector<Card> hand = player.getHand();
+    int numberInHand = 0;
+    bool familyPlayed = false;
+    Card& currentCard = collection.front();
+    // Get an overview of the current collection
+    for (const Card& card : collection){
+        if (card.getBirdType() == "Flamingo") currentCollection[0]++;
+        else if (card.getBirdType() == "Owl") currentCollection[1]++;
+        else if (card.getBirdType() == "Toucan") currentCollection[2]++;
+        else if (card.getBirdType() == "Duck") currentCollection[3]++;
+        else if (card.getBirdType() == "Parrot") currentCollection[4]++;
+        else if (card.getBirdType() == "Magpie") currentCollection[5]++;
+        else if (card.getBirdType() == "Reed Warbler") currentCollection[6]++;
+        else if (card.getBirdType() == "Robin") currentCollection[7]++;
+    }
+    // Try to add a bird to the collection that is not yet in the collection
+    for (int i = 0; i<=7; i++){
+        if (i == 0) currentBirdType = "Flamingo";
+        else if (i == 1) currentBirdType = "Owl";
+        else if (i == 2) currentBirdType = "Toucan";
+        else if (i == 3) currentBirdType = "Duck";
+        else if (i == 4) currentBirdType = "Parrot";
+        else if (i == 5) currentBirdType = "Magpie";
+        else if (i == 6) currentBirdType = "Reed Warbler";
+        else if (i == 7) currentBirdType = "Robin";
+
+        if (currentCollection[i] == 0){
+            for (const Card& card : hand) {
+                    if (card.getBirdType() == currentBirdType) numberInHand++;
+                    currentCard = card;
+            }
+            if (numberInHand >= currentCard.getBigFamily()){
+                player.collectBird(currentCard);
+                player.collectBird(currentCard);
+                for (int j=0; j < numberInHand-2; j++){
+                    table.addCardToDiscard(currentCard);
+                }
+                player.deleteType(currentCard);
+                familyPlayed = true;
+            } else if (numberInHand >= currentCard.getSmallFamily()){
+                player.collectBird(currentCard);
+                for (int j=0; j < numberInHand-1; j++){
+                    table.addCardToDiscard(currentCard);
+                }
+                player.deleteType(currentCard);
+                familyPlayed = true;
+            }
+        }
+    if (familyPlayed) break;
+    }
+}
 
 int Game::birdsEnclosed(std::vector<Card> row, const Card& card){
     int enclosedBirds = 0;
