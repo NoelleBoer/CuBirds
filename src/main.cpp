@@ -2,12 +2,12 @@
 #include <iostream>
 
 int main() {
-    int nRepeats = 1000; // How many games are played
+    int nRepeats = 60; // How many games are played
     int arr[3][3] = {0, 0, 0};
     std::pair<int, int> winner;
     std::string rowLabels[3] = {"Empty", "Seven", "2x3  "};
     for (int i = 0; i<nRepeats; i++){
-        Game game(2,3);
+        Game game(4,3);
         winner = game.play();
         arr[winner.first][winner.second]++;
     }

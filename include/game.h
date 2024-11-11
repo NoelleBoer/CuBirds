@@ -173,6 +173,8 @@ private:
     void playGreedyBigFamily(Player& player);
     void playSeven(Player& player);
     void playTwoThree(Player& player);
+    void increaseTurn();
+    int getTurn();
 };
 
 #endif // GAME_H
