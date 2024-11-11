@@ -1,17 +1,20 @@
 #include "game.h"
 #include <iostream>
+#include <bits/stdc++.h>
 
 int main() {
-    int nRepeats = 60; // How many games are played
+    int nRepeats = 30; // How many games are played
     int arr[3][3] = {0, 0, 0};
     std::pair<int, int> winner;
     std::string rowLabels[3] = {"Empty", "Seven", "2x3  "};
+    float numberTurns;
     for (int i = 0; i<nRepeats; i++){
-        Game game(4,3);
+        Game game(3,4);
         winner = game.play();
+        numberTurns+=game.getTurn();
         arr[winner.first][winner.second]++;
     }
-
+    std::cout << "Average number of turns: " << std::round(numberTurns/nRepeats) << std::endl;
     std::cout << "      Tie  P1   P2" << std::endl;
     std::cout << "    -----------------" << std::endl;
 

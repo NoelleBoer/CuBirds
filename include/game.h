@@ -33,6 +33,7 @@ public:
      * 
      */
     std::pair<int, int> play();
+    int getTurn();
 
 private:
     std::vector<Player> players; /**< Vector of players of the game. */
@@ -174,7 +175,6 @@ private:
     void playSeven(Player& player);
     void playTwoThree(Player& player);
     void increaseTurn();
-    int getTurn();
 };
 
 #endif // GAME_H

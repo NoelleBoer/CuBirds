@@ -15,6 +15,7 @@ std::pair<int, int> Game::play() {
     int gameEnds;
     startGame();
     while (true) {
+        increaseTurn();
         for (Player& player : players) {
             //Start the turn of a player, when this returns false the deck is empty and the game ends
             if (!startTurn(player)) return std::make_pair(endGame(), 0);
