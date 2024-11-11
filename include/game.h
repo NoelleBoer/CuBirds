@@ -5,6 +5,8 @@
 #include "player.h"
 #include "table.h"
 #include "card.h"
+#include <chrono>
+
 
 /**
  * @class Game
@@ -34,11 +36,16 @@ public:
      */
     std::pair<int, int> play();
     int getTurn();
+    std::chrono::duration<double> getTimeP1();
+    std::chrono::duration<double> getTimeP2();
+
 
 private:
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
     int turn = 0; /**< Which turn are the players on */
+    std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0);
+    std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0);
 
     /**
      * @brief Generates the beginning conditions of a game

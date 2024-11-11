@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <unordered_map>
 #include <random>
+#include <chrono>
 
 Game::Game(int type1, int type2) {
     // Always initialize with 2 players
@@ -15,13 +16,17 @@ std::pair<int, int> Game::play() {
     int gameEnds;
     startGame();
     while (true) {
-        increaseTurn();
+        turn++;
         for (Player& player : players) {
+            auto start = std::chrono::high_resolution_clock::now();
             //Start the turn of a player, when this returns false the deck is empty and the game ends
-            if (!startTurn(player)) return std::make_pair(endGame(), 0);
+            if (!startTurn(player)) return std::make_pair(0, endGame());
             // Check if a players' collection is complete, if it is that player wins and the game ends
             gameEnds = checkForWin(player);
             if (gameEnds!=0) return std::make_pair(gameEnds,player.getIndex());
+            auto end = std::chrono::high_resolution_clock::now();
+            if (player.getIndex() == 1) totalTimeP1 += end - start;
+            else totalTimeP2 += end-start;
         }
     }
 }
@@ -50,12 +55,16 @@ int Game::endGame() {
     return largestCollectionPlayer->getIndex();
 }
 
-void Game::increaseTurn() {
-    turn++;
-}
-
 int Game::getTurn(){
     return turn;
+}
+
+std::chrono::duration<double> Game::getTimeP1(){
+    return totalTimeP1;
+}
+
+std::chrono::duration<double> Game::getTimeP2(){
+    return totalTimeP2;
 }
 
 void Game::startGame() {
