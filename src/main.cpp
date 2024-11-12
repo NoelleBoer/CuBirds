@@ -15,11 +15,11 @@ int main() {
 
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
-        Game game(0, 0);
+        Game game(3,4);
         winner = game.play();
         totalTurns += game.getTurn();
-        totalTimeP1 += game.getTimeP1(); // Accumulate time
-        totalTimeP2 += game.getTimeP2(); // Accumulate time
+        totalTimeP1 += game.getTimeP1(); 
+        totalTimeP2 += game.getTimeP2();
         arr[winner.first][winner.second]++;
     }
 
