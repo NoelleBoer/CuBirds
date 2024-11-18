@@ -177,11 +177,17 @@ private:
      * @brief Checks how many birds are enclosed on a row
      * Aanvullen
      */
-    int birdsEnclosed(std::vector<Card> row, const Card& card);
+    std::vector<Card> birdsEnclosed(std::vector<Card> row, const Card& card);
     void playGreedyBigFamily(Player& player);
     void playSeven(Player& player);
     void playTwoThree(Player& player);
     void increaseTurn();
+    float playScoredCards(Player& player, bool test);
+    float scoreGreedyCards(std::vector<Card> enclosedBirds);
+    float scoreCards(Player& player, std::vector<Card> enclosedBirds, bool test);
+    float scoreTwoThreeCards(Player& player,std::vector<Card> enclosedBirds, bool test);
+    float scoreSevenCards(Player& player,std::vector<Card> enclosedBirds, bool test);
+    
 };
 
 #endif // GAME_H

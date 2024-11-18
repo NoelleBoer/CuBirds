@@ -101,28 +101,28 @@ void Table::printTable(){
 void Table::initializeDrawPile() {
     // Add all 110 standard cards
     for (int i = 0; i<7; i++) {
-        drawPile.push_back(Card("Flamingo",2,3,7));
+        drawPile.push_back(Card("Flamingo",2,3,7,1));
     }
     for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Owl",3,4,10));
+        drawPile.push_back(Card("Owl",3,4,10,2));
     }
     for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Toucan",3,4,10));
+        drawPile.push_back(Card("Toucan",3,4,10,3));
     }
     for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Duck",4,6,13));
+        drawPile.push_back(Card("Duck",4,6,13,4));
     }
     for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Parrot",4,6,13));
+        drawPile.push_back(Card("Parrot",4,6,13,5));
     }
     for (int i = 0; i<17; i++) {
-        drawPile.push_back(Card("Magpie",5,7,17));
+        drawPile.push_back(Card("Magpie",5,7,17,6));
     }
     for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Reed Warbler",6,9,20));
+        drawPile.push_back(Card("Reed Warbler",6,9,20,7));
     }
     for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Robin",6,9,20));
+        drawPile.push_back(Card("Robin",6,9,20,8));
     }
 }
 
@@ -140,7 +140,7 @@ Card Table::drawCard() {
         drawPile.pop_back();
         return drawnCard;
     } else {
-        return Card("Empty",0,0,10);
+        return Card("Empty",0,0,10,0);
     }
 }
 

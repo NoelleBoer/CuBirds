@@ -115,6 +115,7 @@ public:
      * 
      */
     void printCollection();
+    void changeHand(std::vector<Card> newHand);
 
 private:
     std::vector<Card> hand; /**< The cards in the hand of the player. */

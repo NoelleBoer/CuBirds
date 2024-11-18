@@ -1,8 +1,9 @@
 # Define compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Iinclude
+CXXFLAGS = -std=c++11 -Wall -Iinclude -I/usr/include
 
-# Define target executable
+
+# Define the target executable
 TARGET = CuBirdsGame
 
 # Define the directories for source files and object files

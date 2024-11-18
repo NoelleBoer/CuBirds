@@ -26,7 +26,7 @@ public:
      * @param bigFamily The number of birds required to form a big family.
      * @param numberBirds The total number of this bird available in a standard deck.
      */
-    Card(std::string birdType, int smallFamily, int bigFamily, int numberBirds);
+    Card(std::string birdType, int smallFamily, int bigFamily, int numberBirds, int index);
 
     /**
      * @brief Default constructor for Card.
@@ -72,12 +72,14 @@ public:
      * @return The total number of birds for this type in a standard deck.
      */
     int getNumberBirds() const;
+    int getIndex() const;
 
 private:
     std::string birdType; /**< The type of bird represented by the card. */
     int smallFamily; /**< Number of birds required to form a small family. */
     int bigFamily; /**< Number of birds required to form a big family. */
     int numberBirds; /**< Total number of this bird type available in the game. */
+    int index;
 };
 
 #endif // CARD_H

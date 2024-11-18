@@ -69,3 +69,7 @@ void Player::deleteType(const Card& cardToRemove) {
         }), 
         hand.end());
 }
+
+void Player::changeHand(std::vector<Card> newHand){
+    hand = newHand;
+}
