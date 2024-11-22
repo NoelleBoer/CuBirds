@@ -2,7 +2,7 @@
 #define PLAYER_H
 
 #include <vector>
-#include "card.h"
+#include <array>
 #include "table.h"
 
 /**
@@ -30,14 +30,14 @@ public:
      * 
      * @return The cards in the hand of a player as a vector of the class Card.
      */
-    std::vector<Card> getHand();
+    std::array<int, 8> getHand();
 
     /**
      * @brief Gets the cards in the collection of a player
      * 
      * @return The cards in the collection of a player as a vector of the class Card.
      */
-    std::vector<Card> getCollection();
+    std::array<int, 8> getCollection();
 
     /**
      * @brief Gets the type of a player
@@ -75,14 +75,14 @@ public:
      * 
      * @param card The card to be added to the hand
      */
-    void drawCard(const Card& card);
+    void drawCard(int id);
 
     /**
      * @brief Adds a card to the collection vector
      * 
      * @param card The card to be added to the collection
      */
-    void collectBird(const Card& card);
+    void collectBird(int id);
 
     /**
      * @brief Empties the vector hand
@@ -94,7 +94,7 @@ public:
      * 
      * @param card The card that decides the birdType that is to be deleted from hand
      */
-    void deleteType(const Card& card);
+    void deleteType(int id);
 
     /**
      * @brief Shuffles the hand
@@ -115,13 +115,15 @@ public:
      * 
      */
     void printCollection();
-    void changeHand(std::vector<Card> newHand);
+    void changeHand(std::array<int, 8>  newHand);
+    int getCollectionSize();
 
 private:
-    std::vector<Card> hand; /**< The cards in the hand of the player. */
-    std::vector<Card> collection; /**< The cards in the collection of the player. */
+    std::array<int, 8> hand; /**< The cards in the hand of the player. */
+    std::array<int, 8> collection;/**< The cards in the collection of the player. */
     int playerType; /**< The type of player. */
     int index; /**< The index of the player. */
+    
 };
 
 #endif // PLAYER_H

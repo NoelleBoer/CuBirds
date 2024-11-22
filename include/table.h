@@ -2,7 +2,8 @@
 #define TABLE_H
 
 #include <vector>
-#include "card.h"
+#include <array>
+#include <string>
 
 /**
  * @class Table
@@ -25,7 +26,7 @@ public:
      * 
      * This function initializes a draw pile with the 110 standard cards.
      */
-    void initializeDrawPile();
+    void setDrawPile(std::array<int, 8> drawVector);
 
     /**
      * @brief Adds card(s) to a row on the table
@@ -36,7 +37,7 @@ public:
      * Value of side can be 0 for left (front) or 1 for right (back)
      * @param numberOfCards Number of cards that should be added
      */
-    void addCards(const Card& card, int rowNumber, bool side, int numberOfCards);
+    void addCards(int id, int rowNumber, bool side, int numberOfCards);
 
     /**
      * @brief Resolves a row and returns the collected cards
@@ -49,21 +50,21 @@ public:
      * 
      * @return The cards that should be collected by the player and whether the deck is empty
      */
-    std::pair<std::vector<Card>, bool> resolveRow(const Card& card, int rowNumber);
+    std::vector<int> resolveRow(int id, int rowNumber, int side, int numberCards);
 
     /** 
      * @brief Adds card to discard pile
      * 
      * @param Card that needs to be added to the discard pile
      */
-    void addCardToDiscard(const Card& card);
+    void addCardToDiscard(int id);
 
     /**
      * @brief Get the discard pile
      * 
      * @return The discard pile vector
      */
-    std::vector<Card> getDiscardPile() const;
+    std::array<int, 8> getDiscardPile() const;
 
     /**
      * @brief Empty the discard pile
@@ -95,35 +96,14 @@ public:
      * 
      * If the drawpile is empty after reshuffle it returns a card with birdType "Empty"
      */
-    Card drawCard();
+    int drawCard();
 
     /**
      * @brief Gets the first row of the board
      * 
      * @return The first row of the board as a vector of the class Card
      */
-    std::vector<Card> getFirstRow() const;
-
-    /**
-     * @brief Gets the second row of the board
-     * 
-     * @return The second row of the board as a vector of the class Card
-     */
-    std::vector<Card> getSecondRow() const;
-
-    /**
-     * @brief Gets the third row of the board
-     * 
-     * @return The third row of the board as a vector of the class Card
-     */
-    std::vector<Card> getThirdRow() const;
-
-    /**
-     * @brief Gets the fourth row of the board
-     * 
-     * @return The fourth row of the board as a vector of the class Card
-     */
-    std::vector<Card> getFourthRow() const;
+    std::vector<int> getRow(int rowNumber) const;
 
     /**
      * @brief Gets the number of cards in the discard pile
@@ -143,15 +123,16 @@ public:
      * @brief Prints all rows on the table to the terminal
      */
     void printTable();
+    bool drawPileEmpty();
+    void printTableTypes();
+    void setRow(std::vector<int> row, int rowNumber);
+    void printDrawPile();
 
 
 private:
-    std::vector<Card> firstRow; /**< The first row of cards on the table. */
-    std::vector<Card> secondRow; /**< The second row of cards on the table. */
-    std::vector<Card> thirdRow; /**< The third row of cards on the table. */
-    std::vector<Card> fourthRow; /**< The fourth row of cards on the table. */
-    std::vector<Card> discardPile; /**< The discard pile. */
-    std::vector<Card> drawPile; /**< The draw pile. */
+    std::array<std::vector<int>, 4> table;
+    std::array<int, 8> discardPile = {};
+    std::array<int, 8> drawPile = {}; /**< The draw pile. */
 };
 
 #endif // TABLE_H

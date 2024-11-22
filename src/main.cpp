@@ -5,11 +5,12 @@
 #include <vector>
 #include <fstream>
 #include <nlohmann/json.hpp>
+#include <array>
 
 using json = nlohmann::json;
 
 void testTurns(){
-    int nRepeats = 5000;
+    int nRepeats = 50;
     int numberP1 = 0;
     int numberP2 = 0;
     int numberTies = 0;
@@ -87,7 +88,7 @@ void testPlayerTwoThree() {
             else if (winner.second == 1) numberP2++;
             else if (winner.second == 2) numberP1++;
         }
-        std::cout << "Wins: " << numberTies << " " << numberP1 << " " << numberP2 << std::endl;
+
         json series;
         series["data"]["0"] = numberP1;
         series["data"]["1"] = numberP2;
@@ -141,7 +142,7 @@ void testPlayerSeven() {
             else if (winner.second == 2) numberP1++;
         }
         json series;
-        std::cout << "Wins: " << numberTies << " " << numberP1 << " " << numberP2 << std::endl;
+        
         series["data"]["0"] = numberP1;
         series["data"]["1"] = numberP2;
         series["data"]["2"] = numberTies;
@@ -162,7 +163,7 @@ void testPlayerSeven() {
 }
 
 void testPlayers(){
-    const int nRepeats = 1; // Number of times the game is played
+    const int nRepeats = 10000; // Number of times the game is played
     std::array<std::array<int, 4>, 3> arr{};
     std::pair<int, int> winner;
     const char* rowLabels[] = {"Empty", "Seven", "2x3", "Total"};
@@ -173,7 +174,7 @@ void testPlayers(){
 
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
-        Game game(101,0);
+        Game game(100,100);
         winner = game.play();
         totalTurns += game.getTurn();
         totalTimeP1 += game.getTimeP1(); 
@@ -246,8 +247,8 @@ void testPlayers(){
 
 int main() {
     //testTurns();
-    testPlayerSeven();
+    //testPlayerSeven();
     //testPlayerTwoThree();
-    //testPlayers();
+    testPlayers();
     return 0;
 }

@@ -4,238 +4,185 @@
 #include <chrono>
 #include <iostream>
 #include <ostream>
+#include <array>
 
 Table::Table() {}
 
-//First checks in which row the cards should be added
-//Then checks on which side the cards should be added
-//Then adds the specified number of cards in the right place
-void Table::addCards(const Card& card, int rowNumber, bool side, int numberOfCards) {
-    if (rowNumber == 1) {
-        if (!side) {
-            for (int i = 0; i < numberOfCards; i++) {
-                firstRow.insert(firstRow.begin(),card);
-            }
-        } else {
-            for (int i = 0; i < numberOfCards; i++){
-                firstRow.push_back(card);
-            }
-        } 
-    } else if (rowNumber == 2) {
-        if (!side) {
-            for (int i = 0; i < numberOfCards; i++) {
-                secondRow.insert(secondRow.begin(),card);
-            }
-        } else {
-            for (int i = 0; i < numberOfCards; i++){
-                secondRow.push_back(card);
-            }
-        } 
-    } else if (rowNumber == 3) {
-        if (!side) {
-            for (int i = 0; i < numberOfCards; i++) {
-                thirdRow.insert(thirdRow.begin(),card);
-            }
-        } else {
-            for (int i = 0; i < numberOfCards; i++) {
-                thirdRow.push_back(card);
-            }
-        } 
-    } else if (rowNumber == 4) {
-        if (!side) {
-            for (int i = 0; i < numberOfCards; i++){
-                fourthRow.insert(fourthRow.begin(),card);
-            }
-        } else {
-            for (int i = 0; i < numberOfCards; i++){
-                fourthRow.push_back(card);
-            }
-        } 
+void Table::addCards(int id, int rowNumber, bool side, int numberOfCards) {
+    for (int i = 0; i < numberOfCards; i++){
+        if (!side) table[rowNumber].insert(table[rowNumber].begin(), id);
+        else table[rowNumber].push_back(id);
     }
 }
 
-std::vector<Card> Table::getFirstRow() const {
-    return firstRow;
-}
-std::vector<Card> Table::getSecondRow() const {
-    return secondRow;
-}
-std::vector<Card> Table::getThirdRow() const {
-    return thirdRow;
-}
-std::vector<Card> Table::getFourthRow() const {
-    return fourthRow;
+std::vector<int> Table::getRow(int rowNumber) const {
+    return table[rowNumber];
 }
 
-void Table::addCardToDiscard(const Card& card) {
-    discardPile.push_back(card);
-}
-
-std::vector<Card> Table::getDiscardPile() const {
-    return discardPile;
+void Table::addCardToDiscard(int id) {
+    discardPile[id]++;
 }
 
 void Table::clearDiscardPile() {
-    discardPile.clear();
+    for (int i = 0; i<8; i++) {
+        discardPile[i] = 0;
+    }
 }
 
 void Table::printTable(){
-    for (const Card& card : firstRow) {
-        std::cout << card.getBirdType() << " ";
+    for (int i = 0; i < 4; i++){
+        for (int card : table[i]) {
+            std::cout << card << " ";
+        }
+        std::cout << std::endl;
     }
     std::cout << std::endl;
-    for (const Card& card : secondRow) {
-        std::cout << card.getBirdType() << " ";
-    }
-    std::cout << std::endl;
-    for (const Card& card : thirdRow) {
-        std::cout << card.getBirdType() << " ";
-    }
-    std::cout << std::endl;
-    for (const Card& card : fourthRow) {
-        std::cout << card.getBirdType() << " ";
-    }
-    std::cout << std::endl<<std::endl;
 }
 
-void Table::initializeDrawPile() {
-    // Add all 110 standard cards
-    for (int i = 0; i<7; i++) {
-        drawPile.push_back(Card("Flamingo",2,3,7,1));
-    }
-    for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Owl",3,4,10,2));
-    }
-    for (int i = 0; i<10; i++) {
-        drawPile.push_back(Card("Toucan",3,4,10,3));
-    }
-    for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Duck",4,6,13,4));
-    }
-    for (int i = 0; i<13; i++) {
-        drawPile.push_back(Card("Parrot",4,6,13,5));
-    }
-    for (int i = 0; i<17; i++) {
-        drawPile.push_back(Card("Magpie",5,7,17,6));
-    }
-    for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Reed Warbler",6,9,20,7));
-    }
-    for (int i = 0; i<20; i++) {
-        drawPile.push_back(Card("Robin",6,9,20,8));
+void Table::printTableTypes(){
+    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
+                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
+    for (int i = 0; i < 4; i++){
+        for (int card : table[i]) {
+            std::cout << birdTypes[card] << " ";
+        }
+        std::cout << std::endl;
     }
 }
 
-void Table::shuffleDrawPile() {
-    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
-    std::shuffle(drawPile.begin(), drawPile.end(), std::default_random_engine(seed));
+void Table::setDrawPile(std::array<int, 8> drawVector) {
+    drawPile = drawVector;
 }
 
-Card Table::drawCard() {
-    if (drawPile.empty()){
-        reshuffleFromDiscardPile();
+void Table::setRow(std::vector<int> row, int rowNumber){
+    table[rowNumber] = row;
+}
+
+bool Table::drawPileEmpty(){
+    for (int i = 0; i < 8; i++){
+        if (drawPile[i] != 0) return false;
     }
-    if (!drawPile.empty()) {
-        Card drawnCard = drawPile.back();
-        drawPile.pop_back();
-        return drawnCard;
-    } else {
-        return Card("Empty",0,0,10,0);
+    reshuffleFromDiscardPile();
+    for (int i = 0; i < 8; i++){
+        if (drawPile[i] != 0) return false;
     }
+    return true;
+}
+
+int Table::drawCard() {
+    if (!drawPileEmpty()){
+        int totalCards = getDrawSize();
+        std::random_device rd;  // Seed
+        std::mt19937 gen(rd()); // Mersenne Twister RNG
+        std::uniform_int_distribution<int> dis(1, totalCards);
+        int randomCard = dis(gen);
+
+        // Map the random number to a card ID based on weights
+        int cumulativeSum = 0;
+        for (size_t i = 0; i < 8; i++) {
+            cumulativeSum += drawPile[i];
+            if (randomCard <= cumulativeSum) {
+                drawPile[i]--;
+                return i; // Return the card ID
+            }
+        }
+    }
+    throw std::logic_error("Card draw failed: randomCard mapping did not resolve.");
+}
+
+void Table::printDrawPile() {
+    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
+                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
+    std::cout << "Drawpile: " << std::endl;
+    for (int i = 0; i <8; i++){
+        std::cout << birdTypes[i] << ": " << drawPile[i] << std::endl;
+    }
+    std::cout << std::endl;
 }
 
 void Table::reshuffleFromDiscardPile() {
-    std::vector<Card> discardPile = getDiscardPile();
-    if (!discardPile.empty()) {
-        drawPile.insert(drawPile.end(), discardPile.begin(), discardPile.end());  // Move discard pile into the deck
-        shuffleDrawPile(); // Shuffle the new draw pile
-        clearDiscardPile(); // Clear the discard pile
+    for (int i = 0; i < 8; i++){
+        drawPile[i] += discardPile[i];
+        discardPile[i] = 0;
     }
 }
 
 int Table::getDiscardSize(){
-    return discardPile.size();
+    int totalSize = 0;
+    for (int i = 0; i < 9; i++){
+        totalSize += discardPile[i];
+    }
+    return totalSize;
 }
 
 int Table::getDrawSize(){
-    return drawPile.size();
+    int totalSize = 0;
+    for (int i = 0; i < 8; i++){
+        totalSize += drawPile[i];
+    }
+    return totalSize;
 }
 
-std::pair<std::vector<Card>, bool> Table::resolveRow(const Card& card, int rowNumber){
-    std::vector<Card> collectedCards;
-    std::vector<Card> row;
-    bool deckEmpty = false;
+std::vector<int> Table::resolveRow(int id, int rowNumber, int side, int numberCards){
+    std::vector<int> collectedCards;
+    int indexBreak = -1; // To mark where the enclosing id is found
+    std::vector<int> row = getRow(rowNumber);
 
-    //Get the specified row
-    if (rowNumber == 1) {
-        row = firstRow;
-    } else if (rowNumber == 2) {
-        row = secondRow;
-    } else if (rowNumber == 3) {
-        row = thirdRow;
-    } else if (rowNumber == 4) {
-        row = fourthRow;
-    }
-
-    // Get a subvector of the enclosed birds
-    for (size_t i = 0; i < row.size(); ++i) {
-        for (size_t j = i + 1; j < row.size(); ++j) {
-            if (row[i].getBirdType() == row[j].getBirdType() && j > i + 1) {
-                // Ensure that only cards of a different bird type are enclosed
-                bool differentBirdsEnclosed = true;
-                for (size_t k = i + 1; k < j; ++k) {
-                    if (row[k].getBirdType() == row[i].getBirdType()) {
-                        differentBirdsEnclosed = false;
-                        break;
-                    }
-                }
-
-                if (differentBirdsEnclosed) {
-                    collectedCards = std::vector<Card>(row.begin() + i + 1, row.begin() + j);
-                    // Erase the enclosed cards
-                    row.erase(row.begin() + i + 1, row.begin() + j);
-                    break;  // Exit the inner loop once matching cards are found and handled
-                }
+    if (side == 0) {
+        for (size_t i = numberCards; i < row.size(); ++i) {
+            if (row[i] == id) {
+                indexBreak = i;
+                break;
+            }
+            collectedCards.push_back(row[i]); 
+        }
+        if (indexBreak == -1) {
+            collectedCards.clear();
+        } else {
+            if (numberCards >= 0 && indexBreak < static_cast<int>(row.size())) {
+                row.erase(row.begin() + numberCards, row.begin() + indexBreak);
+            }
+        }
+    } else if (side == 1) {
+        for (int i = row.size() - numberCards - 1; i >= 0; --i) {
+            if (row[i] == id) {
+                indexBreak = i;
+                break;
+            }
+            collectedCards.push_back(row[i]); 
+        }
+        if (indexBreak == -1) {
+            collectedCards.clear();
+        } else {
+            if (indexBreak + 1 < static_cast<int>(row.size()) && row.size() - numberCards >= 0) {
+                row.erase(row.begin() + indexBreak + 1, row.end() - numberCards);
             }
         }
     }
 
     //Check if all cards on a row have the same birdtype
     bool allCardsMatch = true;
-    for (const Card& crd : row) {
-        if (card.getBirdType()!=crd.getBirdType()) {
+    for (const int crd : row) {
+        if (id!=crd) {
             allCardsMatch = false;
             break;
         }
     }
 
-    //If there is only one kind on a row, add cards untill there are two types
-    //If the deck is empty the game should end
+    //If there is only one kind on a row, add cards until there are two types
     if (allCardsMatch) {
-        Card newCard = drawCard();
-        if (newCard.getBirdType() == "Empty") {
-            deckEmpty = true;
-        }
-        while ((newCard.getBirdType() == card.getBirdType()) && newCard.getBirdType() != "Empty"){
-            row.push_back(newCard);
-            newCard = drawCard();
-        }
-        if (newCard.getBirdType() == "Empty") {
-            deckEmpty = true;
-        } else {
+        if (!drawPileEmpty()) {
+            int newCard = drawCard();
+            while (newCard == id && !drawPileEmpty()) {
+                row.push_back(newCard);
+                newCard = drawCard();
+            }
             row.push_back(newCard);
         }
     }
 
     // Get the new row on the board
-    if (rowNumber == 1) {
-        firstRow = row;
-    } else if (rowNumber == 2) {
-        secondRow = row;
-    } else if (rowNumber == 3) {
-        thirdRow = row;
-    } else if (rowNumber == 4) {
-        fourthRow = row;
-    }
-    return std::make_pair(collectedCards, deckEmpty);
+    table[rowNumber] = row;
+
+    return collectedCards;
 }

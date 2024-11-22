@@ -1,6 +1,6 @@
 # Define compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11 -Wall -Iinclude -I/usr/include
+CXXFLAGS = -std=c++11 -g -Wall -Iinclude -I/usr/include
 
 
 # Define the target executable

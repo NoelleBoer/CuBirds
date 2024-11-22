@@ -4,7 +4,7 @@
 #include <vector>
 #include "player.h"
 #include "table.h"
-#include "card.h"
+#include <array>
 #include <chrono>
 
 
@@ -47,6 +47,12 @@ private:
     std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0);
     std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0);
 
+    //Card information:
+    std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6};
+    std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9};
+    std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20};
+
+
     /**
      * @brief Generates the beginning conditions of a game
      * 
@@ -80,7 +86,7 @@ private:
      * there are not enough cards to deal every player 8 new cards.
      * Otherwise it returns true.
      */
-    bool startTurn(Player& player);
+    void startTurn(Player& player);
 
     /**
      * @brief Checks if there is a winning player
@@ -129,7 +135,7 @@ private:
      * 
      * @return Whether the player collected any cards
      */
-    bool resolveTable(Player& player, int row, const Card& card);
+    bool resolveTable(Player& player, int row, int id, int side, int numberCards);
 
     /**
      * @brief Playes cards for playerType 0
@@ -177,16 +183,16 @@ private:
      * @brief Checks how many birds are enclosed on a row
      * Aanvullen
      */
-    std::vector<Card> birdsEnclosed(std::vector<Card> row, const Card& card);
+    std::vector<int> birdsEnclosed(std::vector<int> row, int id);
     void playGreedyBigFamily(Player& player);
     void playSeven(Player& player);
     void playTwoThree(Player& player);
     void increaseTurn();
     float playScoredCards(Player& player, bool test);
-    float scoreGreedyCards(std::vector<Card> enclosedBirds);
-    float scoreCards(Player& player, std::vector<Card> enclosedBirds, bool test);
-    float scoreTwoThreeCards(Player& player,std::vector<Card> enclosedBirds, bool test);
-    float scoreSevenCards(Player& player,std::vector<Card> enclosedBirds, bool test);
+    float scoreGreedyCards(std::vector<int> enclosedBirds);
+    float scoreCards(Player& player, std::vector<int> enclosedBirds, bool test);
+    float scoreTwoThreeCards(Player& player,std::vector<int> enclosedBirds, bool test);
+    float scoreSevenCards(Player& player,std::vector<int> enclosedBirds, bool test);
     
 };
 

@@ -3,44 +3,45 @@
 #include <random>
 #include <iostream>
 #include <ctime>
+#include <array>
 
-Player::Player(int playerType, int index) : playerType(playerType), index(index){}
+Player::Player(int playerType, int index) 
+    : hand{}, collection{}, playerType(playerType), index(index) {}
 
-void Player::drawCard(const Card& card) {
-    hand.push_back(card);
+
+void Player::drawCard(int id) {
+    hand[id]++;
 }
 
-void Player::collectBird(const Card& card) {
-    collection.push_back(card);
+void Player::collectBird(int id) {
+    collection[id]++;
 }
 
 void Player::printHand() {
-    std::cout << "Hand of " << index << ": ";
-    for (const Card& card : hand) {
-        std::cout << card.getBirdType() << " ";
+    std::array<std::string, 8>  birdTypes = {"Flamingo    ", "Owl         ", "Toucan      ", "Duck        ", 
+                                      "Parrot      ", "Magpie      ", "Reed Warbler", "Robin       "};
+    std::cout << "Hand of player " << index << ": "<< std::endl;
+    for (int i = 0; i <8; i++){
+        std::cout << i << ". " << birdTypes[i] << ": " << hand[i] << std::endl;
     }
     std::cout << std::endl;
 }
 
 void Player::printCollection() {
-    std::cout << "Collection of " << index << ": ";
-    for (const Card& card : collection) {
-        std::cout << card.getBirdType() << " ";
+    std::array<std::string, 8>  birdTypes = {"Flamingo    ", "Owl         ", "Toucan      ", "Duck        ", 
+                                      "Parrot      ", "Magpie      ", "Reed Warbler", "Robin       "};
+    std::cout << "Collection of player " << index << ": " << std::endl;
+    for (int i = 0; i <8; i++){
+        std::cout << i << ". " << birdTypes[i] << ": " << collection[i] << std::endl;
     }
     std::cout << std::endl;
 }
 
-void Player::shuffleHand() {
-    std::random_device rd;
-    std::mt19937 g(rd());
-    std::shuffle(hand.begin(), hand.end(), g);
-}
-
-std::vector<Card> Player::getCollection() {
+std::array<int, 8>  Player::getCollection() {
     return collection;
 }
 
-std::vector<Card> Player::getHand() {
+std::array<int, 8>  Player::getHand() {
     return hand;
 }
 
@@ -53,23 +54,23 @@ int Player::getIndex() {
 }
 
 void Player::emptyHand() {
-    hand.clear();
+    for (int i = 0; i<8; i++){
+        hand[i] = 0;
+    }
 }
 
 int Player::getHandSize(){
-    return hand.size();
+    int handSize = 0;
+    for (int i = 0; i<8; i++){
+        handSize += hand[i];
+    }
+    return handSize;
 }
 
-//uses a lambda function to compare each card with the birdType of the cardToRemove
-void Player::deleteType(const Card& cardToRemove) {
-    std::string birdTypeToRemove = cardToRemove.getBirdType();
-    hand.erase(std::remove_if(hand.begin(), hand.end(), 
-        [&birdTypeToRemove](const Card& card) {
-            return card.getBirdType() == birdTypeToRemove;
-        }), 
-        hand.end());
+void Player::deleteType(int id) {
+    hand[id] = 0;
 }
 
-void Player::changeHand(std::vector<Card> newHand){
+void Player::changeHand(std::array<int, 8>  newHand){
     hand = newHand;
 }
