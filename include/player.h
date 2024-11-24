@@ -1,9 +1,7 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <vector>
 #include <array>
-#include "table.h"
 
 /**
  * @class Player
@@ -26,31 +24,25 @@ public:
     Player(int playerType, int index);
 
     /**
-     * @brief Gets the cards in the hand of a player.
+     * @brief Gets the cards in the hand of a player
      * 
-     * @return The cards in the hand of a player as a vector of the class Card.
+     * @return The cards in the hand of a player as an array
+     * Every index is a type of card, with the rarest card first
      */
     std::array<int, 8> getHand();
 
     /**
      * @brief Gets the cards in the collection of a player
      * 
-     * @return The cards in the collection of a player as a vector of the class Card.
+     * @return The cards in the collection of a player as an array
+     * Every index is a type of card, with the rarest card first
      */
     std::array<int, 8> getCollection();
 
     /**
      * @brief Gets the type of a player
      * 
-     * ---player 0---
-     * - chooses a random card from hand and playes this type
-     * - chooses first card in a random hand which is able to form a family, tries big family first
-     * - 50% chance to draw cards when no cards are collected
-     * 
-     * ---player 1---
-     * - Plays birds to get most cards from the board
-     * - Tries to play most valuable family (type with least cards in the game) first
-     * - Always draws cards when no cards are collected
+     * Currently the type represents the turn at which a player chooses a goal
      * 
      * @return The type of a player
      */
@@ -71,51 +63,61 @@ public:
     int getHandSize();
 
     /**
-     * @brief Adds a card to the hand vector
+     * @brief Adds a card to the hand array
      * 
-     * @param card The card to be added to the hand
+     * @param id Id of the card that has to be added
      */
     void drawCard(int id);
 
     /**
-     * @brief Adds a card to the collection vector
+     * @brief Adds a card to the collection array
      * 
-     * @param card The card to be added to the collection
+     * @param id Id of the card to be added to the collection
      */
     void collectBird(int id);
 
     /**
-     * @brief Empties the vector hand
+     * @brief Empties the hand
+     * 
+     * Sets all of the array indexes to zero
      */
     void emptyHand();
 
     /**
-     * @brief Deletes all cards that share a birdType with card from hand
+     * @brief Deletes one type from player hand
      * 
-     * @param card The card that decides the birdType that is to be deleted from hand
+     * Sets the index of id to zero
+     * 
+     * @param id The id of the card to be removed from hand
      */
     void deleteType(int id);
 
     /**
-     * @brief Shuffles the hand
-     * 
-     * Used to get a random front() card 
-     * 
-     */
-    void shuffleHand();
-
-    /**
-     * @brief prints the hand vector to the terminal
+     * @brief prints the hand array to the terminal
      * 
      */
     void printHand();
 
     /**
-     * @brief prints the collection vector to the terminal
+     * @brief prints the collection array to the terminal
      * 
      */
     void printCollection();
-    void changeHand(std::array<int, 8>  newHand);
+
+    /**
+     * @brief Sets a hand with a specific array of cards
+     * 
+     * @param newHand The array that contains the new cards of the hand
+     * 
+     */
+    void setHand(std::array<int, 8>  newHand);
+
+    /**
+     * @brief Get the number of cards in a collection
+     * 
+     * @return the number of cards that are in the collection
+     * 
+     */
     int getCollectionSize();
 
 private:
@@ -123,7 +125,7 @@ private:
     std::array<int, 8> collection;/**< The cards in the collection of the player. */
     int playerType; /**< The type of player. */
     int index; /**< The index of the player. */
-    
+    int kindsOfBirds = 8; /**< The amount of unique birds in the game */
 };
 
 #endif // PLAYER_H

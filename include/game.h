@@ -1,9 +1,9 @@
 #ifndef GAME_H
 #define GAME_H
 
-#include <vector>
 #include "player.h"
 #include "table.h"
+#include <vector>
 #include <array>
 #include <chrono>
 
@@ -23,7 +23,7 @@ public:
      * 
      * In this constructer the players are made with a specified type and index
      */
-    Game(int type1, int type2);
+    Game(int type1, int type2,float k, float l, float m, float n, float o);
 
     /**
      * @brief Plays the game untill there is a winner
@@ -35,33 +35,28 @@ public:
      * 
      */
     std::pair<int, int> play();
+
+    /**
+     * @brief Get the current turn the game is at
+     * 
+     * @return The current turn the game is at
+     */
     int getTurn();
+
+    /**
+     * @brief Get the total amount of time for player 1
+     * @return The total time player 1 played
+     */
     std::chrono::duration<double> getTimeP1();
+
+    /**
+     * @brief Get the total amount of time for player 2
+     * @return The total time player 2 played
+     */
     std::chrono::duration<double> getTimeP2();
 
 
 private:
-    std::vector<Player> players; /**< Vector of players of the game. */
-    Table table; /**< Table of the game. */
-    int turn = 0; /**< Which turn are the players on */
-    std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0);
-    std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0);
-
-    //Card information:
-    std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6};
-    std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9};
-    std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20};
-
-
-    /**
-     * @brief Generates the beginning conditions of a game
-     * 
-     * Fills all four rows with three different cards
-     * Gives all players eight cards
-     * Gives all players a starting card for their collection
-     */
-    void startGame();
-
     /**
      * @brief Ends the game when the deck is empty
      * 
@@ -74,19 +69,15 @@ private:
     /**
      * @brief Handles the turn of a player
      * 
-     * First a player plays cards
+     * First a player must plays cards
      * Then a player can play a family
      * Then there is checked whether the players' hand is empty
      * When the hand is empty everybodies hand is put in discard and everybody gets 8 new cards
+     * The current player gets another turn
      *
      * @param player Player whose turn it is
-     * 
-     * @return Whether the deck is empty
-     * It returns false when a player empties his hand and 
-     * there are not enough cards to deal every player 8 new cards.
-     * Otherwise it returns true.
      */
-    void startTurn(Player& player);
+    void playTurn(Player& player);
 
     /**
      * @brief Checks if there is a winning player
@@ -101,16 +92,6 @@ private:
      * return 2 if the player won by having 2 sets of at least 3 birds
      */
     int checkForWin(Player& player);
-
-    /**
-     * @brief Plays cards on the board
-     * 
-     * This function makes sure that a player plays cards according to the 
-     * strategy of this type of player.
-     * 
-     * @param player Player whose turn it is
-     */
-    void playCards(Player& player);
 
     /**
      * @brief Plays a family
@@ -131,7 +112,9 @@ private:
      * 
      * @param player Player whose turn it is
      * @param row Row where cards were played
-     * @param card Card whose birdType is the type of cards that were played this turn
+     * @param id Id of the card whose birdType is the type of cards that were played this turn
+     * @param side On which side the cards were played
+     * @param numberCards The number of cards that were played of birdtype id
      * 
      * @return Whether the player collected any cards
      */
@@ -140,7 +123,7 @@ private:
     /**
      * @brief Playes cards for playerType 0
      * 
-     * - chooses a random card from hand and playes this type
+     * - chooses a weighted random card from hand and playes this type
      * - 50% chance to draw cards when no cards are collected
      * 
      * @param player Current player 
@@ -149,30 +132,10 @@ private:
     void playRandomCards(Player& player);
 
     /**
-     * @brief Playes family for playerType 0
+     * @brief Playes a greedy family
      * 
-     * - always plays a family when able (the one he finds first in hand)
-     * 
-     * @param player Current player 
-     * 
-     */
-    void playRandomFamily(Player& player);
-
-    /**
-     * @brief Playes cards for playerType 1
-     * 
-     * - chooses a random card from hand and playes this type
-     * - 50% chance to draw cards when no cards are collected
-     * 
-     * @param player Current player 
-     * 
-     */
-    void playGreedyCards(Player& player);
-
-    /**
-     * @brief Playes family for playerType 1
-     * 
-     * - always plays a family when able (the one he finds first in hand)
+     * First tries to play a big family (rarest bird first)
+     * Then tries to play a small family (rarest bird first)
      * 
      * @param player Current player 
      * 
@@ -180,19 +143,114 @@ private:
     void playGreedyFamily(Player& player);
 
     /**
-     * @brief Checks how many birds are enclosed on a row
-     * Aanvullen
+     * @brief Checks which birds would be enclosed in a row
+     * 
+     * @param row Which row the function should look at
+     * @param id Id of the bird that can enclose other birds
+     * 
+     * @return A vector of the enclosed birds
      */
     std::vector<int> birdsEnclosed(std::vector<int> row, int id);
-    void playGreedyBigFamily(Player& player);
+
+    /**
+     * @brief Plays a family for a collection of seven different birds
+     * 
+     * Plays a bird that is not yet in the collection
+     * 
+     * @param player Current player
+     */
     void playSeven(Player& player);
+
+    /**
+     * @brief Plays a family for a collection of two sets of three birds
+     * 
+     * First tries to complete a solo set by collecting a big family
+     * Then tries to complete a duo set by adding a small family
+     * If the risk of the opponent clearing his hand is high, the player also plays a small family
+     * If there is only one species of birds in the collection or the current sets cannot be completed 
+     *  the player tries to add a new big or small family
+     */
     void playTwoThree(Player& player);
-    void increaseTurn();
+
+    /**
+     * @brief Plays cards based on a maximum score
+     * 
+     * @param player Current player
+     * @param test Is the call a test
+     * 
+     * Test prevents an infinite loop
+     * 
+     * @return returns the maximum score that can be obtained for a player
+     */
     float playScoredCards(Player& player, bool test);
-    float scoreGreedyCards(std::vector<int> enclosedBirds);
+
+    /**
+     * @brief Score cards based on a number of factors
+     * If the type = 0 or the type < turn we play greedy
+     * 
+     * Scored based on:
+     * - How much needed for own collection (scaled by k)
+     * - How much the player needs the cards on the next turn (scaled by l)
+     * - Rarity of the cards (scaled by m)
+     * - How much the opponent needs the cards (scaled by n)
+     * 
+     * @param player Current player
+     * @param enclosedBirds Birds that are enclosed by a certain move
+     * @param test Is the function call a test
+     * 
+     * @return The maximum score that can be obtained by the move
+     */
     float scoreCards(Player& player, std::vector<int> enclosedBirds, bool test);
-    float scoreTwoThreeCards(Player& player,std::vector<int> enclosedBirds, bool test);
-    float scoreSevenCards(Player& player,std::vector<int> enclosedBirds, bool test);
+
+    /**
+     * @brief Calculates a greedy score for a vector of cards
+     * 
+     * @param enclosedBirds Vector of birds to be scored
+     * 
+     * @return Obtained score (10-28 per card)
+     */
+    float scoreGreedyCards(std::vector<int> enclosedBirds);
+
+    /**
+     * @brief Calculates score for a vector of cards for 2x3 collection
+     * 
+     * @param enclosedBirds Vector of cards to be scored
+     * 
+     * Scored based on:
+     * - If the player has only 1 species a card is scored based on how many cards of this species are on the board
+     * - If the player needs this card to complete a collection the score is 15
+     * 
+     * @return Obtained score (5-15 per card)
+     */
+    float scoreTwoThreeCards(Player& player,std::vector<int> enclosedBirds);
+
+    /**
+     * @brief Calculates score for a vector of cards for 7 collection
+     * 
+     * @param EnclosedBirds Vector of cards to be scored
+     * 
+     * @return Obtained score (10-20 per card)
+     */
+    float scoreSevenCards(Player& player,std::vector<int> enclosedBirds);
+
+    std::vector<Player> players; /**< Vector of players of the game. */
+    Table table; /**< Table of the game. */
+    int turn; /**< Which turn are the players on */
+    float k; //Scaler own collection
+    float l; //Scaler for looking 1 turn forward
+    float m; //Scaler for rarity of the card
+    float n; //Scaler for looking at opponent
+    float o; //Scaler for favoring seven over two sets of three
+    int kindsOfBirds = 8; /**< Kinds of unique birds in the game */
+    int amountOfRows = 4; /**< Amount of rows on the table */
+
+    std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0); /**< Total duration of player 1 turns*/
+    std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0); /**< Total duration of player 2 turns*/
+
+    //Card information:
+    std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6}; /**< Amount of birds needed for a small family*/
+    std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9}; /**<  Amount of birds needed for a big family*/
+    std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20}; /**<  Amount of birds in the game*/
     
 };
 
