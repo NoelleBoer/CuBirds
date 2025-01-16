@@ -94,10 +94,11 @@ void testPlayers(){
 }
 
 void tuneParameters (){
-    const int populationSize = 50; // Number of players in the population
+    const int populationSize = 50; // Number of solutions in the population
     const int generations = 100;  // Number of generations
     const float mutationRate = 0.1; // Mutation rate
     const int nRepeats = 10; // Games per fitness evaluation
+    const int numberOpponents = 10;
 
     // struct to populate the population
     struct Player {
@@ -124,14 +125,16 @@ void tuneParameters (){
     for (int g = 0; g < generations; g++) {
         std::vector<std::pair<Player, double>> scoredPopulation;
         for (const Player &p : population) {
-            Player p2 = population[distIndex(gen)];
             double wins = 0;
-            for (int i = 0; i < nRepeats; i++){
-                Game game(p.k, p.l, p.m, p.n, p.o, p2.k, p2.l, p2.m, p2.n, p2.o);
-                std::pair<int, int> winner = game.play();
-                if (winner.first == 1) wins++;
+            for (int opp = 0; opp < numberOpponents; opp++){
+                Player p2 = population[distIndex(gen)];
+                for (int i = 0; i < nRepeats; i++){
+                    Game game(p.k, p.l, p.m, p.n, p.o, p2.k, p2.l, p2.m, p2.n, p2.o);
+                    std::pair<int, int> winner = game.play();
+                    if (winner.first == 1) wins++;
+                }
             }
-            float score = wins/nRepeats;
+            float score = wins/(nRepeats*numberOpponents);
             scoredPopulation.emplace_back(p, score);
         }
 
