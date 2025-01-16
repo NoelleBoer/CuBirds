@@ -23,7 +23,8 @@ public:
      * 
      * In this constructer the players are made with a specified type and index
      */
-    Game(int type1, int type2,float k, float l, float m, float n, float o);
+    Game(float k1, float l1, float m1, float n1, float o1, 
+        float k2, float l2, float m2, float n2, float o2);
 
     /**
      * @brief Plays the game untill there is a winner
@@ -194,13 +195,20 @@ private:
      * - Rarity of the cards (scaled by m)
      * - How much the opponent needs the cards (scaled by n)
      * 
+     * The total score = 
+     * [0,10]*rarityScore*k*numberOfCollectedCards (How much the cards is needed for own collection)
+     * [0,10]*rarityScore*l*numberOfCollectedCards (How much the cards are worth in the future)
+     * [0,10]*rarityScore*m*numberOfCollectedCards (How much the cards are scored for the opponent)
+     * -10*rarityScore*numberOfCardsSpent (How much the cards we spend are worth)
+     * 
      * @param player Current player
      * @param enclosedBirds Birds that are enclosed by a certain move
      * @param test Is the function call a test
+     * @param id Id of the card that was played
      * 
      * @return The maximum score that can be obtained by the move
      */
-    float scoreCards(Player& player, std::vector<int> enclosedBirds, bool test);
+    float scoreCards(Player& player, std::vector<int> enclosedBirds, bool test, int id);
 
     /**
      * @brief Calculates a greedy score for a vector of cards
@@ -236,11 +244,6 @@ private:
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
     int turn; /**< Which turn are the players on */
-    float k; //Scaler own collection
-    float l; //Scaler for looking 1 turn forward
-    float m; //Scaler for rarity of the card
-    float n; //Scaler for looking at opponent
-    float o; //Scaler for favoring seven over two sets of three
     int kindsOfBirds = 8; /**< Kinds of unique birds in the game */
     int amountOfRows = 4; /**< Amount of rows on the table */
 
@@ -251,7 +254,7 @@ private:
     std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6}; /**< Amount of birds needed for a small family*/
     std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9}; /**<  Amount of birds needed for a big family*/
     std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20}; /**<  Amount of birds in the game*/
-    
+    std::array<float, 8>  rarityScore = {28,20,20,15,15,11,10,10}; /**<  Score based on rarity in the game*/
 };
 
 #endif // GAME_H

@@ -1,11 +1,12 @@
 #include "game.h"
 #include <random>
+#include <iostream> // to be removed
 
-Game::Game(int type1, int type2, float k, float l, float m, float n, float o) 
-    :k(k), l(l), m(m),n(n),o(o){
+Game::Game(float k1, float l1, float m1, float n1, float o1, 
+        float k2, float l2, float m2, float n2, float o2) {
     // Always initialize with 2 players
-    players.push_back(Player(type1,1));
-    players.push_back(Player(type2,2));
+    players.push_back(Player(1,k1,l1,m1,n1,o1));
+    players.push_back(Player(2,k2,l2,m2,n2,o2));
 
     table.setDrawPile({7,10,10,13,13,17,20,20});// Standard 110 cards of CuBirds
     std::vector<int> row; // Row to be added to the table
@@ -133,32 +134,26 @@ bool Game::resolveTable(Player& player, int row, int id, int side, int numberCar
 }
 
 void Game::playFamily(Player& player) {
-    int type = player.getType();
     int awayFromGoalSeven = -1; // 8 unique birds, only 7 needed
     int awayFromGoalTwoThree = 5; // Maximum of 5 cards away from goal
     int solos = 0; // Number of species with 1 collected bird
     int duos = 0; // Number of species with 2 collected birds
     int triples = 0; // Number of species with 3 collected birds
-
-    // Type 0 always plays greedy, else we play greedy until turn = type
-    if (type == 0 || type < turn) playGreedyFamily(player);
-    else {
-        for (int i = 0; i < kindsOfBirds; i++){
-            if (player.getCollection()[i] == 0) {
-                awayFromGoalSeven++;
-            } else if (player.getCollection()[i] == 1) solos++;
-            else if (player.getCollection()[i] == 2) duos++;
-            else if (player.getCollection()[i] == 3) triples++;
-        }
-        if (triples == 1 && duos == 1) awayFromGoalTwoThree = 1;
-        else if ((triples == 1 && solos == 1 )|| duos == 2) awayFromGoalTwoThree = 2;
-        else if ((duos == 1 && solos == 1) ||triples == 1) awayFromGoalTwoThree = 3;
-        else if (solos == 2) awayFromGoalTwoThree = 4;
-        //Choose a goal based on how far away from both goals the player is
-        //Scaled by o (the favor two seven different birds in a collection)
-        if (o*awayFromGoalSeven > awayFromGoalTwoThree) playTwoThree(player);
-        else playSeven(player);
+    for (int i = 0; i < kindsOfBirds; i++){
+        if (player.getCollection()[i] == 0) {
+            awayFromGoalSeven++;
+        } else if (player.getCollection()[i] == 1) solos++;
+        else if (player.getCollection()[i] == 2) duos++;
+        else if (player.getCollection()[i] == 3) triples++;
     }
+    if (triples == 1 && duos == 1) awayFromGoalTwoThree = 1;
+    else if ((triples == 1 && solos == 1 )|| duos == 2) awayFromGoalTwoThree = 2;
+    else if ((duos == 1 && solos == 1) ||triples == 1) awayFromGoalTwoThree = 3;
+    else if (solos == 2) awayFromGoalTwoThree = 4;
+    //Choose a goal based on how far away from both goals the player is
+    //Scaled by o (the favor two seven different birds in a collection)
+    if (player.getO()*awayFromGoalSeven > awayFromGoalTwoThree) playTwoThree(player);
+    else playSeven(player);
 }
 
 void Game::playRandomCards(Player& player) {
@@ -200,7 +195,7 @@ void Game::playRandomCards(Player& player) {
 
 float Game::scoreTwoThreeCards(Player& player, std::vector<int> enclosedBirds){
     float totalScore = 0; // Total obtained score
-    int numberCards = 0; // Total number of cards on the board
+    float numberCards = 0; // Total number of cards on the board
     int numberSpecies = 0; // Total number of species in a players collection
     std::array<int, 8> currentBoard = {}; //Species on the current board
 
@@ -218,13 +213,14 @@ float Game::scoreTwoThreeCards(Player& player, std::vector<int> enclosedBirds){
         if (player.getCollection()[i] != 0) numberSpecies++;
     }
 
-    // Score every card in enclosedBirds
+    // Score every card in enclosedBirds and scale by rarity
+    // Result = [0,10]*rarityScore per card
     for (const int card : enclosedBirds){
         if (player.getCollection()[card] == 0 && numberSpecies == 1) {
             // Scale the score of the card by how many cards are on the board
-            totalScore += 5 + (10 * (currentBoard[card] / numberCards)); //score from 5-15
-        } else if (player.getCollection()[card] == 1) totalScore += 15;
-        else if (player.getCollection()[card] == 2) totalScore += 15;
+            totalScore += (10 * (currentBoard[card] / numberCards))*player.getM()*rarityScore[card]; 
+        } else if (player.getCollection()[card] == 1) totalScore += 10*player.getM()*rarityScore[card];
+        else if (player.getCollection()[card] == 2) totalScore += 10*player.getM()*rarityScore[card];
     }
     return totalScore;
 }
@@ -243,12 +239,13 @@ float Game::scoreSevenCards(Player& player, std::vector<int> enclosedBirds){
         }
     }
 
-    // Score every card in enclosedBirds
+    // Score every card in enclosedBirds and scale by rarity
+    // Result = [0,10]*rarityScore per card
     for (int card : enclosedBirds){
         if (player.getCollection()[card] == 0) {
             // Scale the score of the card by how many cards are on the board, more cards lesser score
-            if (numberCards == 0) numberCards =1;
-            totalScore += 20 - (10 * (currentBoard[card] / numberCards)); //score from 10-20
+            if (numberCards == 0) numberCards = 1;
+            totalScore += (10 * (1 - (currentBoard[card] / numberCards)))*player.getM()*rarityScore[card];
         }
     }
     return totalScore;
@@ -257,26 +254,19 @@ float Game::scoreSevenCards(Player& player, std::vector<int> enclosedBirds){
 float Game::scoreGreedyCards(std::vector<int> enclosedBirds) {
     float totalScore = 0;
 
-    //Map the cards to a rarity score {28,20,20,15,15,11,10,10} and add to the total
     for (const int card : enclosedBirds) {
-        totalScore += 200/numberBirds[card];
+        totalScore += 10*rarityScore[card];
     }
     return totalScore;
 }
 
-float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test) {
-    if (enclosedBirds.empty()) return 0; // Score is automatically 0
-
-    int type = player.getType(); // Type of the player
+float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test, int id) {
     int triples = 0; // Number of triplets in collection
     int duos = 0; // Number of duos in collection
     int solos = 0; // Number of solos in collection
     int awayFromGoalTwoThree = 5; // How many cards away from 2x3
     int awayFromGoalSeven = -1; // How many cards away from 7 different birds
     float totalScore = 0; // Total score for all cards
-    float opponentScore = 0; // Total score for opponent
-
-    if (type == 0 || type < turn) return scoreGreedyCards(enclosedBirds);
 
     // Check the current collection and set a score based on how many cards away from goal TwoThree
     for (int i = 0; i < kindsOfBirds; i++){
@@ -288,15 +278,19 @@ float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test
     }
     if (triples == 1 && duos == 1) awayFromGoalTwoThree = 1;
     else if ((triples == 1 && solos == 1 )|| duos == 2) awayFromGoalTwoThree = 2;
-    else if ((duos == 1 && solos == 1) ||triples == 1) awayFromGoalTwoThree = 3;
-    else if (solos == 2) awayFromGoalTwoThree = 4;
+    else if ((duos == 1 && solos == 1) || triples == 1) awayFromGoalTwoThree = 3;
+    else if (solos == 2 || duos == 1) awayFromGoalTwoThree = 4;
 
-    // First score cards on own players collection
-    if (o*awayFromGoalTwoThree > awayFromGoalSeven) {
-        totalScore += k*scoreSevenCards(player, enclosedBirds);
+    // First score cards on own players collection scaled on rarity score
+    // - Added to score: How much the cards that are collected are needed for the collection
+    // - Subtracted from the score: how much we need the cards that are played and thus removed from hand for the collection
+    // TODO invent a logical way to keep in mind the cards that are layed away and how much we need those
+    if (player.getO()*awayFromGoalTwoThree > awayFromGoalSeven) {
+        totalScore += scoreSevenCards(player, enclosedBirds);
     } else {
-        totalScore += k*scoreTwoThreeCards(player, enclosedBirds);
+        totalScore += scoreTwoThreeCards(player, enclosedBirds);
     }
+    totalScore *= player.getK(); // Scale the score for the own collection by k
 
     //Score on how much the player needs the new cards in the future
     if (!test){
@@ -306,18 +300,21 @@ float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test
             newHand[card]++;
         }
         player.setHand(newHand);
-        totalScore += l * playScoredCards(player, true);
+        totalScore += player.getL() * playScoredCards(player, true);
         player.setHand(oldHand); // Change back to original hand
     }
 
-    //Scale by the rarity of the cards
-    for (const int card : enclosedBirds) {
-        totalScore+= m*numberBirds[card];
+    //Score cards on how much your opponent needs the cards
+    if (!test){
+        std::array<int, 8>  oldHand = players[2-player.getIndex()].getHand(); // Store the current hand
+        std::array<int, 8>  newHand = oldHand; // Change the hand to check future score
+        for (int card : enclosedBirds){
+            newHand[card]++;
+        }
+        players[2-player.getIndex()].setHand(newHand);
+        totalScore += player.getN() * playScoredCards(players[2-player.getIndex()], true);
+        players[2-player.getIndex()].setHand(oldHand); // Change back to original hand
     }
-
-    //Secondly score cards on how much you think your opponent needs the cards
-    opponentScore += (scoreTwoThreeCards(players[2-player.getIndex()], enclosedBirds) + scoreSevenCards(players[2-player.getIndex()], enclosedBirds))/2;
-    totalScore += n*opponentScore;
 
     return totalScore;
 }
@@ -339,7 +336,7 @@ float Game::playScoredCards(Player& player, bool test){
                 row = table.getRow(j);
                 row.insert(row.begin(), i);
                 enclosedBirds = birdsEnclosed(row, i);
-                score = scoreCards(player, enclosedBirds, test);
+                score = scoreCards(player, enclosedBirds, test, i);
                 if (score > maxScore) {
                     maxScore = score;
                     optimalRow = j;
@@ -350,7 +347,7 @@ float Game::playScoredCards(Player& player, bool test){
                 row = table.getRow(j);
                 row.push_back(i);
                 enclosedBirds = birdsEnclosed(row, i);
-                score = scoreCards(player, enclosedBirds, test);
+                score = scoreCards(player, enclosedBirds, test, i);
                 if (score > maxScore) {
                     maxScore = score;
                     optimalRow = j;
@@ -364,10 +361,6 @@ float Game::playScoredCards(Player& player, bool test){
     if (test) return maxScore; // If it is a test, dont make the play, but return the score
 
     // Do the maximal scored play
-    if (maxScore == 0) {
-        playRandomCards(player); //No birds can be enclosed, so place random cards
-        return 0;
-    }
     table.addCards(optimalType,optimalRow,optimalSide,player.getHand()[optimalType]);
     if (resolveTable(player,optimalRow,optimalType, optimalSide, player.getHand()[optimalType])) cardsCollected = true;
     player.deleteType(optimalType);

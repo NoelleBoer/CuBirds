@@ -21,7 +21,7 @@ public:
      * @param index The index of the player
      * The index should start at 1
      */
-    Player(int playerType, int index);
+    Player(int index, float k, float l, float m, float n, float o);
 
     /**
      * @brief Gets the cards in the hand of a player
@@ -120,11 +120,65 @@ public:
      */
     int getCollectionSize();
 
+    /**
+     * @brief Return K value of this player
+     * 
+     * k represents the scaler of the own collection
+     * 
+     * @return k
+     * 
+     */
+    float getK();
+
+    /**
+     * @brief Return L value of this player
+     * 
+     * l represents the scaler for looking 1 turn forward
+     * 
+     * @return l
+     * 
+     */
+    float getL();
+
+    /**
+     * @brief Return M value of this player
+     * 
+     * m represents the scaler for the rarity of the card
+     * 
+     * @return m
+     * 
+     */
+    float getM();
+
+    /**
+     * @brief Return N value of this player
+     * 
+     * n represents the scaler of looking at opponent
+     * 
+     * @return n
+     * 
+     */
+    float getN();
+
+    /**
+     * @brief Return O value of this player
+     * 
+     * o represents the scaler of favoring seven over two sets of three
+     * 
+     * @return o
+     * 
+     */
+    float getO();
+
 private:
     std::array<int, 8> hand; /**< The cards in the hand of the player. */
     std::array<int, 8> collection;/**< The cards in the collection of the player. */
-    int playerType; /**< The type of player. */
     int index; /**< The index of the player. */
+    float k; /**<  Scaler own collection*/
+    float l; /**<  Scaler for looking 1 turn forward*/
+    float m; /**<  Scaler for rarity of the card*/
+    float n; /**<  Scaler for looking at opponent*/
+    float o; /**<  Scaler for favoring seven over two sets of three [0,5]*/
     int kindsOfBirds = 8; /**< The amount of unique birds in the game */
 };
 

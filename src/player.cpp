@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-Player::Player(int playerType, int index) 
-    : hand{}, collection{}, playerType(playerType), index(index) {}
+Player::Player(int index, float k, float l, float m, float n, float o) 
+    : hand{}, collection{}, index(index), k(k),l(l),m(m),n(n),o(o){}
 
 
 void Player::drawCard(int id) {
@@ -54,10 +54,6 @@ std::array<int, 8>  Player::getHand() {
     return hand;
 }
 
-int Player::getType() {
-    return playerType;
-}
-
 int Player::getIndex() {
     return index;
 }
@@ -69,6 +65,27 @@ int Player::getHandSize(){
     }
     return handSize;
 }
+
+float Player::getK() {
+    return k;
+}
+
+float Player::getL() {
+    return l;
+}
+
+float Player::getM() {
+    return m;
+}
+
+float Player::getN() {
+    return n;
+}
+
+float Player::getO() {
+    return o;
+}
+
 
 //Set functions
 void Player::setHand(std::array<int, 8>  newHand){
