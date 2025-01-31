@@ -61,6 +61,7 @@ void Table::reshuffleFromDiscardPile() {
 }
 
 std::vector<int> Table::resolveRow(int id, int rowNumber, int side, int numberCards){
+    if (numberCards == 0) return {};
     std::vector<int> collectedCards; //Keeps track of which cards are to be collected
     int indexBreak = -1; // To mark where the enclosing id is found
     std::vector<int> row = getRow(rowNumber); // Copy of the row that is to be resolved
@@ -118,7 +119,6 @@ std::vector<int> Table::resolveRow(int id, int rowNumber, int side, int numberCa
         }
     }
 
-    // Get the new row on the board
     table[rowNumber] = row;
 
     return collectedCards;
@@ -131,6 +131,16 @@ void Table::printDrawPile() {
     std::cout << "Drawpile: " << std::endl;
     for (int i = 0; i < kindsOfBirds; i++){
         std::cout << birdTypes[i] << ": " << drawPile[i] << std::endl;
+    }
+    std::cout << std::endl;
+}
+
+void Table::printDiscardPile() {
+    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
+                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
+    std::cout << "Discardpile: " << std::endl;
+    for (int i = 0; i < kindsOfBirds; i++){
+        std::cout << birdTypes[i] << ": " << discardPile[i] << std::endl;
     }
     std::cout << std::endl;
 }
@@ -188,4 +198,8 @@ void Table::setDrawPile(std::array<int, 8> drawVector) {
 
 void Table::setRow(std::vector<int> row, int rowNumber){
     table[rowNumber] = row;
+}
+
+void Table::setDiscardPile(std::array<int, 8> discardVector) {
+    discardPile = discardVector;
 }

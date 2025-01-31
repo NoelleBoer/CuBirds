@@ -4,6 +4,9 @@
 #include <vector>
 #include <array>
 
+constexpr int kindsOfBirds = 8; /**< Kinds of unique birds in the game */
+constexpr int numberOfRows = 4; /**< Amount of rows on the table */
+
 /**
  * @class Table
  * @brief Represents the table in the CuBirds game.
@@ -149,19 +152,23 @@ public:
      */
     void printDrawPile();
 
+    /**
+     * @brief prints the discardPile array
+     */
+    void printDiscardPile();
+
     /** 
      * @brief Gets the drawpile array
      * @return The drawpile as an array
      */
     std::array<int, 8> getDrawPile();
+    void setDiscardPile(std::array<int, 8> discardVector);
 
-
-private:
-    std::array<std::vector<int>, 4> table; /**< The table with 4 rows */
     std::array<int, 8> discardPile = {}; /**< The discard pile. */
     std::array<int, 8> drawPile = {}; /**< The draw pile. */
-    int kindsOfBirds = 8; /**< Kinds of unique birds in the game */
-    int numberOfRows = 4; /**< Amount of rows on the table */
+
+private:
+    std::array<std::vector<int>, 4> table = {}; /**< The table with 4 rows */
 };
 
 #endif // TABLE_H

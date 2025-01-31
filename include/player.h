@@ -2,6 +2,7 @@
 #define PLAYER_H
 
 #include <array>
+#include "table.h"
 
 /**
  * @class Player
@@ -21,7 +22,7 @@ public:
      * @param index The index of the player
      * The index should start at 1
      */
-    Player(int index, float k, float l, float m, float n, float o);
+    Player(int index);
 
     /**
      * @brief Gets the cards in the hand of a player
@@ -170,6 +171,9 @@ public:
      */
     float getO();
 
+    void setVariables(float vark, float varl, float varm, float varn, float varo);
+    void setCollection (std::array<int,8> newCollection);
+
 private:
     std::array<int, 8> hand; /**< The cards in the hand of the player. */
     std::array<int, 8> collection;/**< The cards in the collection of the player. */
@@ -179,7 +183,6 @@ private:
     float m; /**<  Scaler for rarity of the card*/
     float n; /**<  Scaler for looking at opponent*/
     float o; /**<  Scaler for favoring seven over two sets of three [0,5]*/
-    int kindsOfBirds = 8; /**< The amount of unique birds in the game */
 };
 
 #endif // PLAYER_H

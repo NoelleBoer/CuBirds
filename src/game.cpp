@@ -2,17 +2,16 @@
 #include <random>
 #include <iostream> // to be removed
 
-Game::Game(float k1, float l1, float m1, float n1, float o1, 
-        float k2, float l2, float m2, float n2, float o2) {
+Game::Game() {
     // Always initialize with 2 players
-    players.push_back(Player(1,k1,l1,m1,n1,o1));
-    players.push_back(Player(2,k2,l2,m2,n2,o2));
+    players.push_back(Player(1));
+    players.push_back(Player(2));
 
     table.setDrawPile({7,10,10,13,13,17,20,20});// Standard 110 cards of CuBirds
     std::vector<int> row; // Row to be added to the table
     // start with 3 different cards in each row
     int firstCard, secondCard, thirdCard; // Cards of the row
-    for (int i = 0; i < amountOfRows; i++) {
+    for (int i = 0; i < numberOfRows; i++) {
         row = {};
         firstCard = table.drawCard();
         secondCard = table.drawCard();
@@ -56,6 +55,7 @@ std::pair<int, int> Game::play() {
         turn++; // Increment the turn for every round
         for (Player& player : players) { 
             if (table.drawPileEmpty()) return std::make_pair(0, endGame()); // End the game if the drawpile is empty
+            if (table.getDrawSize() <= 15 && (players[0].getHandSize() == 0 ||players[1].getHandSize() == 0)) return std::make_pair(0, endGame());
             auto start = std::chrono::high_resolution_clock::now(); //Start the time
             playTurn(player); // Play the turn of a current player
             gameEnds = checkForWin(player); // End the game if the collection is complete
@@ -83,26 +83,28 @@ int Game::endGame() {
 }
 
 void Game::playTurn(Player& player) {
-    playScoredCards(player, false);
-    if(!table.drawPileEmpty())playFamily(player);
+    
+    if(!table.drawPileEmpty()) playScoredCards(player, false);
+    if(!table.drawPileEmpty()) playFamily(player);
     //Check if the hand of the player is empty
-    if (player.getHandSize() == 0) {
+    if (player.getHandSize() == 0 && table.getDrawSize() > 15) {
         //The hand of every player goes to discard pile
-        for (Player& player : players) {
-            for (int card : player.getHand()){
-                table.addCardToDiscard(card);
+        for (Player& plr : players) {
+            for (int i = 0; i < kindsOfBirds; i++){
+                for (int j = 0; j < plr.getHand()[i]; j++) table.addCardToDiscard(i);
             }
-            player.emptyHand();
+            // std::cout << "4" << std::endl;
+            // table.printTable();
+            plr.emptyHand();
         }
-        
         //Every player gets 8 new cards (if there are enough in the drawpile)
-        for (Player& player : players) {
+        for (Player& plr : players) {
             for (int i = 0; i < 8; i++) {
-                if (!table.drawPileEmpty()) player.drawCard(table.drawCard());
+                if (!table.drawPileEmpty()) plr.drawCard(table.drawCard());
                 else break;
             }
         }
-        if (!table.drawPileEmpty()) playTurn(player);// Current player gets another turn
+        if (table.getDrawSize() > 15 && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) playTurn(player);
     }
 }
 
@@ -200,7 +202,7 @@ float Game::scoreTwoThreeCards(Player& player, std::vector<int> enclosedBirds){
     std::array<int, 8> currentBoard = {}; //Species on the current board
 
     // Get an overview of the current board
-    for (int i = 0; i < amountOfRows; i++){
+    for (int i = 0; i < numberOfRows; i++){
         std::vector<int> row = table.getRow(i);
         for (int card : row) {
             numberCards++;
@@ -218,6 +220,7 @@ float Game::scoreTwoThreeCards(Player& player, std::vector<int> enclosedBirds){
     for (const int card : enclosedBirds){
         if (player.getCollection()[card] == 0 && numberSpecies == 1) {
             // Scale the score of the card by how many cards are on the board
+            if (numberCards == 0) numberCards = 1;
             totalScore += (10 * (currentBoard[card] / numberCards))*player.getM()*rarityScore[card]; 
         } else if (player.getCollection()[card] == 1) totalScore += 10*player.getM()*rarityScore[card];
         else if (player.getCollection()[card] == 2) totalScore += 10*player.getM()*rarityScore[card];
@@ -231,7 +234,7 @@ float Game::scoreSevenCards(Player& player, std::vector<int> enclosedBirds){
     std::array<int, 8> currentBoard = {}; // Species on the board
 
     //Get an overview of the board
-    for (int i = 0; i < amountOfRows; i++){
+    for (int i = 0; i < numberOfRows; i++){
         std::vector<int> row = table.getRow(i);
         for (int card : row) {
             numberCards++;
@@ -306,16 +309,15 @@ float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test
 
     //Score cards on how much your opponent needs the cards
     if (!test){
-        std::array<int, 8>  oldHand = players[2-player.getIndex()].getHand(); // Store the current hand
+        std::array<int, 8> oldHand = players[(player.getIndex() == 1) ? 1 : 0].getHand();
         std::array<int, 8>  newHand = oldHand; // Change the hand to check future score
         for (int card : enclosedBirds){
             newHand[card]++;
         }
-        players[2-player.getIndex()].setHand(newHand);
-        totalScore += player.getN() * playScoredCards(players[2-player.getIndex()], true);
-        players[2-player.getIndex()].setHand(oldHand); // Change back to original hand
+        players[(player.getIndex() == 1) ? 1 : 0].setHand(newHand);
+        totalScore += players[(player.getIndex() == 1) ? 1 : 0].getN() * playScoredCards(players[(player.getIndex() == 1) ? 1 : 0], true);
+        players[(player.getIndex() == 1) ? 1 : 0].setHand(oldHand); // Change back to original hand
     }
-
     return totalScore;
 }
 
@@ -331,7 +333,7 @@ float Game::playScoredCards(Player& player, bool test){
     
     for (int i = 0; i < kindsOfBirds; i++) {
         if (player.getHand()[i] != 0) {
-            for (int j = 0; j < amountOfRows; j++) {
+            for (int j = 0; j < numberOfRows; j++) {
                 // First score by inserting at front
                 row = table.getRow(j);
                 row.insert(row.begin(), i);
@@ -499,13 +501,13 @@ void Game::playGreedyFamily(Player& player){
 
 std::vector<int> Game::birdsEnclosed(std::vector<int> row, int id) {
     std::vector<int> enclosedBirds; // Birds that are enclosed
-    size_t first = std::string::npos; // Index of one of the enclosing birds
-    size_t second = std::string::npos; // Index of the other enclosing bird
+    size_t first = std::vector<int>::size_type(-1); // Index of one of the enclosing birds
+    size_t second = std::vector<int>::size_type(-1); // Index of the other enclosing bird
 
     // Find the first and second occurrences of the id
     for (size_t i = 0; i < row.size(); i++) {
         if (row[i] == id) {
-            if (first == std::string::npos) {
+            if (first == std::vector<int>::size_type(-1)) {
                 first = i; 
             } else {
                 second = i;
@@ -514,7 +516,7 @@ std::vector<int> Game::birdsEnclosed(std::vector<int> row, int id) {
         }
     }
 
-    if (first != std::string::npos && second != std::string::npos) {
+    if (first != std::vector<int>::size_type(-1) && second != std::vector<int>::size_type(-1)) {
         for (size_t i = first + 1; i < second; i++) {
             if (row[i] != id) {
                 enclosedBirds.push_back(row[i]);
@@ -536,4 +538,44 @@ std::chrono::duration<double> Game::getTimeP1(){
 std::chrono::duration<double> Game::getTimeP2(){
     return totalTimeP2;
 }
+
 //Set functions
+void Game::setPlayer1 (float k, float l, float m, float n, float o) {
+    players[0].setVariables(k,l,m,n,o);
+}
+
+void Game::setPlayer2 (float k, float l, float m, float n, float o) {
+    players[1].setVariables(k,l,m,n,o);
+}
+
+void Game::setCollectionP1 (std::array<int, 8>  newCollection) {
+    std::array<int,8> oldCollection = players[0].getCollection();
+    for (int i = 0; i < kindsOfBirds; i++){
+        table.discardPile[i]+=oldCollection[i];
+    }
+    players[0].setCollection(newCollection);
+}
+
+void Game::setCollectionP2 (std::array<int, 8>  newCollection) {
+    std::array<int,8> oldCollection = players[1].getCollection();
+    for (int i = 0; i < kindsOfBirds; i++){
+        table.discardPile[i]+=oldCollection[i];
+    }
+    players[1].setCollection(newCollection);
+}
+
+void Game::setHandP1 (std::array<int, 8>  newHand) {
+    std::array<int,8> oldHand = players[0].getHand();
+    for (int i = 0; i < kindsOfBirds; i++){
+        table.discardPile[i]+=oldHand[i];
+    }
+    players[0].setHand(newHand);
+}
+
+void Game::setHandP2 (std::array<int, 8>  newHand) {
+    std::array<int,8> oldHand = players[1].getHand();
+    for (int i = 0; i < kindsOfBirds; i++){
+        table.discardPile[i]+=oldHand[i];
+    }
+    players[1].setHand(newHand);
+}

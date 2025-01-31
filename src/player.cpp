@@ -2,8 +2,8 @@
 
 #include <iostream>
 
-Player::Player(int index, float k, float l, float m, float n, float o) 
-    : hand{}, collection{}, index(index), k(k),l(l),m(m),n(n),o(o){}
+Player::Player(int index) 
+    : hand{}, collection{}, index(index), k(1),l(1),m(1),n(1),o(1){}
 
 
 void Player::drawCard(int id) {
@@ -90,4 +90,16 @@ float Player::getO() {
 //Set functions
 void Player::setHand(std::array<int, 8>  newHand){
     hand = newHand;
+}
+
+void Player::setVariables(float vark, float varl, float varm, float varn, float varo){
+    k = vark;
+    l = varl;
+    m = varm;
+    n = varn;
+    o = varo;
+}
+
+void Player::setCollection(std::array<int,8> newCollection) {
+    collection = newCollection;
 }

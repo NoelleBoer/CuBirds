@@ -7,7 +7,6 @@
 #include <array>
 #include <chrono>
 
-
 /**
  * @class Game
  * @brief Represents one game of CuBirds
@@ -23,8 +22,7 @@ public:
      * 
      * In this constructer the players are made with a specified type and index
      */
-    Game(float k1, float l1, float m1, float n1, float o1, 
-        float k2, float l2, float m2, float n2, float o2);
+    Game();
 
     /**
      * @brief Plays the game untill there is a winner
@@ -56,6 +54,15 @@ public:
      */
     std::chrono::duration<double> getTimeP2();
 
+    void setPlayer1 (float k, float l, float m, float n, float o);
+    void setPlayer2 (float k, float l, float m, float n, float o);
+    void setCollectionP1 (std::array<int, 8>  newCollection);
+    void setCollectionP2 (std::array<int, 8>  newCollection);
+    void setHandP1 (std::array<int, 8>  newHand);
+    void setHandP2 (std::array<int, 8>  newHand);
+    void setTable (std::array<std::vector<int>, 4> newTable);
+    void setDraw (std::array<int, 8>  newDraw);
+    void setDiscard (std::array<int, 8>  newDiscard);
 
 private:
     /**
@@ -244,8 +251,6 @@ private:
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
     int turn; /**< Which turn are the players on */
-    int kindsOfBirds = 8; /**< Kinds of unique birds in the game */
-    int amountOfRows = 4; /**< Amount of rows on the table */
 
     std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0); /**< Total duration of player 1 turns*/
     std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0); /**< Total duration of player 2 turns*/

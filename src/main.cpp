@@ -12,7 +12,7 @@
  */
 void testPlayers(){
     const int nRepeats = 100; // Number of times the game is played
-    std::array<std::array<int, 4>, 3> scores{}; // Keeps the score of each game
+    std::array<std::array<int, 3>, 3> scores{}; // Keeps the score of each game
     std::pair<int, int> winner; // Variable that has the index of the winner and the way that is won
     const char* rowLabels[] = {"Empty", "Seven", "2x3", "Total"};
     const char* columnLabels[] = {"Tie", "P1", "P2", "Total"};
@@ -22,7 +22,9 @@ void testPlayers(){
 
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
-        Game game(0,0,0,5,0,1,1,1,1,1); //replace with the player stats you want to test
+        Game game;
+        game.setPlayer1(1,1,1,1,1);
+        game.setPlayer2(1,1,1,1,1);
         winner = game.play();
         totalTurns += game.getTurn();
         totalTimeP1 += game.getTimeP1(); 
@@ -98,7 +100,7 @@ void tuneParameters (){
     const int generations = 100;  // Number of generations
     const float mutationRate = 0.1; // Mutation rate
     const int nRepeats = 10; // Games per fitness evaluation
-    const int numberOpponents = 10;
+    const int numberOpponents = 1;
 
     // struct to populate the population
     struct Player {
@@ -121,15 +123,17 @@ void tuneParameters (){
         p.n = dist(gen);
         p.o = dist(gen);
     }
-
+    std::vector<std::pair<Player, double>> scoredPopulation;
     for (int g = 0; g < generations; g++) {
-        std::vector<std::pair<Player, double>> scoredPopulation;
+        scoredPopulation.clear();
         for (const Player &p : population) {
             double wins = 0;
             for (int opp = 0; opp < numberOpponents; opp++){
                 Player p2 = population[distIndex(gen)];
                 for (int i = 0; i < nRepeats; i++){
-                    Game game(p.k, p.l, p.m, p.n, p.o, p2.k, p2.l, p2.m, p2.n, p2.o);
+                    Game game;
+                    game.setPlayer1(p.k, p.l, p.m, p.n, p.o);
+                    game.setPlayer2(p2.k, p2.l, p2.m, p2.n, p2.o);
                     std::pair<int, int> winner = game.play();
                     if (winner.first == 1) wins++;
                 }
@@ -153,8 +157,8 @@ void tuneParameters (){
 
         //Perform crossover to create offspring
         while (nextGeneration.size() < populationSize) {
-            const Player &parent1 = nextGeneration[rand() % (populationSize / 2)];
-            const Player &parent2 = nextGeneration[rand() % (populationSize / 2)];
+            const Player &parent1 = nextGeneration[distIndex(gen) % (populationSize / 2)];
+            const Player &parent2 = nextGeneration[distIndex(gen) % (populationSize / 2)];
 
             Player child;
             child.k = (parent1.k + parent2.k) / 2;
@@ -185,6 +189,37 @@ void tuneParameters (){
     const Player &bestPlayer = population[0];
     std::cout << "\nOptimal Parameters: (" << bestPlayer.k << ", " << bestPlayer.l << ", "
               << bestPlayer.m << ", " << bestPlayer.n << ", " << bestPlayer.o << ")\n";
+}
+
+void testStartingSetups () {
+    int nRepeats = 1000;
+    std::array<int,8> collectionP1 = {};
+    std::array<int,8> collectionP2 = {};
+    std::array<std::array<std::array<int, 2>, 8>, 8> winners{};
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            for (int k = 0; k < nRepeats; k++){
+                collectionP1.fill(0);
+                collectionP2.fill(0); 
+                Game game;
+                collectionP1[i]++;
+                game.setCollectionP1(collectionP1);
+                collectionP2[j]++;
+                game.setCollectionP2(collectionP2);
+                std::pair<int, int> winner = game.play();
+                if (winner.first == 1) winners[i][j][0]++;
+                else if (winner.first == 2) winners[i][j][1]++;
+            }
+        }
+    }
+    // Print the winners array
+    for (int i = 0; i < 8; i++) {
+        for (int j = 0; j < 8; j++) {
+            std::cout << "Starting setup P1[" << i << "] vs P2[" << j << "]: ";
+            std::cout << "Player 1 Wins: " << winners[i][j][0] << ", ";
+            std::cout << "Player 2 Wins: " << winners[i][j][1] << std::endl;
+        }
+    }
 }
 
 int main() {
