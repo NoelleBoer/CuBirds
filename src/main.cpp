@@ -4,6 +4,8 @@
 #include <array>
 #include <random>
 #include <algorithm>
+#include <fstream> 
+#include <vector>
 
 /**
  * @brief Test one Game instance nRepeats times
@@ -95,24 +97,21 @@ void testPlayers(){
               << (totalTimeP2 / nRepeats).count() << " seconds" << std::endl;
 }
 
-void tuneParameters (){
-    const int populationSize = 50; // Number of solutions in the population
+void tuneParameters() {
+    const int populationSize = 100; // Number of solutions in the population
     const int generations = 100;  // Number of generations
     const float mutationRate = 0.1; // Mutation rate
-    const int nRepeats = 10; // Games per fitness evaluation
-    const int numberOpponents = 1;
+    const int nRepeats = 30; // Games per fitness evaluation
+    const int numberOpponents = 10;
 
-    // struct to populate the population
     struct Player {
-        float k, l, m, n, o; // Player parameters
+        float k, l, m, n, o;
     };
 
-    //Every player gets a random initialazation with every variable [0,2]
     std::random_device rd;
     std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> dist(0.0, 2.0);
-    std::uniform_real_distribution<float> dist1(0.0, 1.0);
-    std::uniform_real_distribution<float> dist2(-1.0, 1.0); 
+    std::uniform_real_distribution<float> dist(0.0, 1.0);
+    std::uniform_real_distribution<float> mutationDist(-0.01, 0.01);
     std::uniform_int_distribution<int> distIndex(0, populationSize - 1);
 
     std::vector<Player> population(populationSize);
@@ -123,14 +122,17 @@ void tuneParameters (){
         p.n = dist(gen);
         p.o = dist(gen);
     }
-    std::vector<std::pair<Player, double>> scoredPopulation;
+
+    std::ofstream outputFile("genetic_algorithm_results.csv");
+    outputFile << "Generation,BestFitness,AvgFitness,WorstFitness,Top5_k,Top5_l,Top5_m,Top5_n,Top5_o\n";
+
     for (int g = 0; g < generations; g++) {
-        scoredPopulation.clear();
+        std::vector<std::pair<Player, double>> scoredPopulation;
         for (const Player &p : population) {
             double wins = 0;
-            for (int opp = 0; opp < numberOpponents; opp++){
+            for (int opp = 0; opp < numberOpponents; opp++) {
                 Player p2 = population[distIndex(gen)];
-                for (int i = 0; i < nRepeats; i++){
+                for (int i = 0; i < nRepeats; i++) {
                     Game game;
                     game.setPlayer1(p.k, p.l, p.m, p.n, p.o);
                     game.setPlayer2(p2.k, p2.l, p2.m, p2.n, p2.o);
@@ -138,57 +140,61 @@ void tuneParameters (){
                     if (winner.first == 1) wins++;
                 }
             }
-            float score = wins/(nRepeats*numberOpponents);
+            double score = wins / (nRepeats * numberOpponents);
             scoredPopulation.emplace_back(p, score);
         }
 
-        // Sort population by fitness in descending order
         std::sort(scoredPopulation.begin(), scoredPopulation.end(),
-                  [](const std::pair<Player, double>& a, const std::pair<Player, double>& b) {
+                  [](const std::pair<Player, double> &a, const std::pair<Player, double> &b) {
                       return a.second > b.second;
                   });
 
+        double bestFitness = scoredPopulation[0].second;
+        double worstFitness = scoredPopulation.back().second;
+        double avgFitness = 0;
+        for (const auto &entry : scoredPopulation) {
+            avgFitness += entry.second;
+        }
+        avgFitness /= scoredPopulation.size();
 
-        // Keep the top half as the next generation
+        outputFile << g + 1 << "," << bestFitness << "," << avgFitness << "," << worstFitness;
+        for (size_t i = 0; i < std::min<size_t>(5, scoredPopulation.size()); i++) {
+            const Player &p = scoredPopulation[i].first;
+            outputFile << "," << p.k << "," << p.l << "," << p.m << "," << p.n << "," << p.o;
+        }
+        outputFile << "\n";
+
+        std::cout << "Generation " << g + 1 << ": Best Fitness = " << bestFitness
+                  << ", Avg Fitness = " << avgFitness
+                  << ", Worst Fitness = " << worstFitness << std::endl;
+        for (size_t i = 0; i < std::min<size_t>(5, scoredPopulation.size()); i++) {
+            const Player &p = scoredPopulation[i].first;
+            std::cout << "  Top " << i + 1 << ": (" << p.k << ", " << p.l << ", "
+                      << p.m << ", " << p.n << ", " << p.o << ")" << std::endl;
+        }
+
         std::vector<Player> nextGeneration;
         for (size_t i = 0; i < populationSize / 2; i++) {
             nextGeneration.push_back(scoredPopulation[i].first);
         }
 
-        //Perform crossover to create offspring
         while (nextGeneration.size() < populationSize) {
             const Player &parent1 = nextGeneration[distIndex(gen) % (populationSize / 2)];
             const Player &parent2 = nextGeneration[distIndex(gen) % (populationSize / 2)];
 
             Player child;
-            child.k = (parent1.k + parent2.k) / 2;
-            child.l = (parent1.l + parent2.l) / 2;
-            child.m = (parent1.m + parent2.m) / 2;
-            child.n = (parent1.n + parent2.n) / 2;
-            child.o = (parent1.o + parent2.o) / 2;
-
-            //Apply mutation
-            if (dist1(gen) < mutationRate) child.k += dist2(gen);
-            if (dist1(gen) < mutationRate) child.l += dist2(gen);
-            if (dist1(gen) < mutationRate) child.m += dist2(gen);
-            if (dist1(gen) < mutationRate) child.n += dist2(gen);
-            if (dist1(gen) < mutationRate) child.o += dist2(gen);
+            child.k = std::clamp((parent1.k + parent2.k) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.l = std::clamp((parent1.l + parent2.l) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.m = std::clamp((parent1.m + parent2.m) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.n = std::clamp((parent1.n + parent2.n) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.o = std::clamp((parent1.o + parent2.o) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
 
             nextGeneration.push_back(child);
         }
         population = nextGeneration;
-
-        // Print the best player's parameters at each generation
-        const Player &bestPlayer = scoredPopulation[0].first;
-        double bestFitness = scoredPopulation[0].second;
-        std::cout << "Generation " << g + 1 << ": Best Fitness = " << bestFitness
-                  << ", Parameters = (" << bestPlayer.k << ", " << bestPlayer.l << ", "
-                  << bestPlayer.m << ", " << bestPlayer.n << ", " << bestPlayer.o << ")\n";
     }
-     // Print the best player overall
-    const Player &bestPlayer = population[0];
-    std::cout << "\nOptimal Parameters: (" << bestPlayer.k << ", " << bestPlayer.l << ", "
-              << bestPlayer.m << ", " << bestPlayer.n << ", " << bestPlayer.o << ")\n";
+
+    outputFile.close();
 }
 
 void testStartingSetups () {
