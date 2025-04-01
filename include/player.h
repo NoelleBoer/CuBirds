@@ -171,7 +171,17 @@ public:
      */
     float getO();
 
-    void setVariables(float vark, float varl, float varm, float varn, float varo);
+    /**
+     * @brief Return P value of this player
+     * 
+     * p represents the scaler the amount of cards
+     * 
+     * @return p
+     * 
+     */
+    float getP();
+
+    void setVariables(float vark, float varl, float varm, float varn, float varo, float varp);
     void setCollection (std::array<int,8> newCollection);
 
 private:
@@ -183,6 +193,7 @@ private:
     float m; /**<  Scaler for rarity of the card*/
     float n; /**<  Scaler for looking at opponent*/
     float o; /**<  Scaler for favoring seven over two sets of three [0,5]*/
+    float p; /**<  Scaler for the amount of cards*/
 };
 
 #endif // PLAYER_H

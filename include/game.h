@@ -54,8 +54,8 @@ public:
      */
     std::chrono::duration<double> getTimeP2();
 
-    void setPlayer1 (float k, float l, float m, float n, float o);
-    void setPlayer2 (float k, float l, float m, float n, float o);
+    void setPlayer1 (float k, float l, float m, float n, float o, float p);
+    void setPlayer2 (float k, float l, float m, float n, float o, float p);
     void setCollectionP1 (std::array<int, 8>  newCollection);
     void setCollectionP2 (std::array<int, 8>  newCollection);
     void setHandP1 (std::array<int, 8>  newHand);
@@ -226,28 +226,6 @@ private:
      */
     float scoreGreedyCards(std::vector<int> enclosedBirds);
 
-    /**
-     * @brief Calculates score for a vector of cards for 2x3 collection
-     * 
-     * @param enclosedBirds Vector of cards to be scored
-     * 
-     * Scored based on:
-     * - If the player has only 1 species a card is scored based on how many cards of this species are on the board
-     * - If the player needs this card to complete a collection the score is 15
-     * 
-     * @return Obtained score (5-15 per card)
-     */
-    float scoreTwoThreeCards(Player& player,std::vector<int> enclosedBirds);
-
-    /**
-     * @brief Calculates score for a vector of cards for 7 collection
-     * 
-     * @param EnclosedBirds Vector of cards to be scored
-     * 
-     * @return Obtained score (10-20 per card)
-     */
-    float scoreSevenCards(Player& player,std::vector<int> enclosedBirds);
-
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
     int turn; /**< Which turn are the players on */
@@ -259,7 +237,7 @@ private:
     std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6}; /**< Amount of birds needed for a small family*/
     std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9}; /**<  Amount of birds needed for a big family*/
     std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20}; /**<  Amount of birds in the game*/
-    std::array<float, 8>  rarityScore = {28,20,20,15,15,11,10,10}; /**<  Score based on rarity in the game*/
+    std::array<float, 8>  rarityScore = {1,0.538,0.538,0.290,0.290,0.095,0,0}; /**<  Score based on rarity in the game*/
 };
 
 #endif // GAME_H

@@ -25,8 +25,8 @@ void testPlayers(){
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
         Game game;
-        game.setPlayer1(1,1,1,1,1);
-        game.setPlayer2(1,1,1,1,1);
+        game.setPlayer1(1,1,1,1,1,1);
+        game.setPlayer2(1,1,1,1,1,1);
         winner = game.play();
         totalTurns += game.getTurn();
         totalTimeP1 += game.getTimeP1(); 
@@ -98,35 +98,40 @@ void testPlayers(){
 }
 
 void tuneParameters() {
-    const int populationSize = 100; // Number of solutions in the population
+    const int populationSize = 400; // Number of solutions in the population (has to be even)
     const int generations = 100;  // Number of generations
-    const float mutationRate = 0.1; // Mutation rate
-    const int nRepeats = 30; // Games per fitness evaluation
-    const int numberOpponents = 10;
+    const float initialMutationRate = 0.1f;
+    float mutationRate;
+    const int nRepeats = 10; // Games per fitness evaluation
+    const int numberOpponents = 40;
 
     struct Player {
-        float k, l, m, n, o;
+        float k, l, m, n, o,p;
     };
 
     std::random_device rd;
     std::mt19937 gen(rd());
     std::uniform_real_distribution<float> dist(0.0, 1.0);
-    std::uniform_real_distribution<float> mutationDist(-0.01, 0.01);
+    std::uniform_real_distribution<float> distO(0.0, 2.0);
+    std::uniform_real_distribution<float> distM(-1.0, 1.0);
+    std::uniform_real_distribution<float> mutationDist(-0.05, 0.05);
     std::uniform_int_distribution<int> distIndex(0, populationSize - 1);
 
     std::vector<Player> population(populationSize);
     for (Player &p : population) {
         p.k = dist(gen);
         p.l = dist(gen);
-        p.m = dist(gen);
+        p.m = distM(gen);
         p.n = dist(gen);
-        p.o = dist(gen);
+        p.o = distO(gen);
+        p.p = dist(gen);
     }
 
     std::ofstream outputFile("genetic_algorithm_results.csv");
     outputFile << "Generation,BestFitness,AvgFitness,WorstFitness,Top5_k,Top5_l,Top5_m,Top5_n,Top5_o\n";
 
     for (int g = 0; g < generations; g++) {
+        mutationRate = initialMutationRate * (1.0f - g / float(generations));
         std::vector<std::pair<Player, double>> scoredPopulation;
         for (const Player &p : population) {
             double wins = 0;
@@ -134,8 +139,8 @@ void tuneParameters() {
                 Player p2 = population[distIndex(gen)];
                 for (int i = 0; i < nRepeats; i++) {
                     Game game;
-                    game.setPlayer1(p.k, p.l, p.m, p.n, p.o);
-                    game.setPlayer2(p2.k, p2.l, p2.m, p2.n, p2.o);
+                    game.setPlayer1(p.k, p.l, p.m, p.n, p.o, p.p);
+                    game.setPlayer2(p2.k, p2.l, p2.m, p2.n, p2.o, p2.p);
                     std::pair<int, int> winner = game.play();
                     if (winner.first == 1) wins++;
                 }
@@ -160,7 +165,7 @@ void tuneParameters() {
         outputFile << g + 1 << "," << bestFitness << "," << avgFitness << "," << worstFitness;
         for (size_t i = 0; i < std::min<size_t>(5, scoredPopulation.size()); i++) {
             const Player &p = scoredPopulation[i].first;
-            outputFile << "," << p.k << "," << p.l << "," << p.m << "," << p.n << "," << p.o;
+            outputFile << "," << p.k << "," << p.l << "," << p.m << "," << p.n << "," << p.o << "," << p.p;
         }
         outputFile << "\n";
 
@@ -170,7 +175,7 @@ void tuneParameters() {
         for (size_t i = 0; i < std::min<size_t>(5, scoredPopulation.size()); i++) {
             const Player &p = scoredPopulation[i].first;
             std::cout << "  Top " << i + 1 << ": (" << p.k << ", " << p.l << ", "
-                      << p.m << ", " << p.n << ", " << p.o << ")" << std::endl;
+                      << p.m << ", " << p.n << ", " << p.o << ", " << p.p <<")" << std::endl;
         }
 
         std::vector<Player> nextGeneration;
@@ -183,17 +188,17 @@ void tuneParameters() {
             const Player &parent2 = nextGeneration[distIndex(gen) % (populationSize / 2)];
 
             Player child;
-            child.k = std::clamp((parent1.k + parent2.k) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
-            child.l = std::clamp((parent1.l + parent2.l) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
-            child.m = std::clamp((parent1.m + parent2.m) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
-            child.n = std::clamp((parent1.n + parent2.n) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.k = std::clamp((parent1.k + parent2.k) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 1.0f);
+            child.l = std::clamp((parent1.l + parent2.l) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 1.0f);
+            child.m = std::clamp((parent1.m + parent2.m) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), -1.0f, 1.0f);
+            child.n = std::clamp((parent1.n + parent2.n) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 1.0f);
             child.o = std::clamp((parent1.o + parent2.o) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 2.0f);
+            child.p = std::clamp((parent1.p + parent2.p) / 2 + (dist(gen) < mutationRate ? mutationDist(gen) : 0.0f), 0.0f, 1.0f);
 
             nextGeneration.push_back(child);
         }
         population = nextGeneration;
     }
-
     outputFile.close();
 }
 
