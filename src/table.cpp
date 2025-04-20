@@ -187,6 +187,10 @@ std::array<int, 8> Table::getDrawPile(){
     return drawPile;
 }
 
+std::array<int, 8> Table::getDiscardPile(){
+    return drawPile;
+}
+
 std::vector<int> Table::getRow(int rowNumber) const {
     return table[rowNumber];
 }

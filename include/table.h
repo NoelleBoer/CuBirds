@@ -162,6 +162,7 @@ public:
      * @return The drawpile as an array
      */
     std::array<int, 8> getDrawPile();
+    std::array<int, 8> getDiscardPile();
     void setDiscardPile(std::array<int, 8> discardVector);
 
     std::array<int, 8> discardPile = {}; /**< The discard pile. */

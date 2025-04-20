@@ -63,6 +63,7 @@ public:
     void setTable (std::array<std::vector<int>, 4> newTable);
     void setDraw (std::array<int, 8>  newDraw);
     void setDiscard (std::array<int, 8>  newDiscard);
+    std::pair<int, int> playMCGame ();
 
 private:
     /**
@@ -225,6 +226,9 @@ private:
      * @return Obtained score (10-28 per card)
      */
     float scoreGreedyCards(std::vector<int> enclosedBirds);
+    void playMCTurn(Player& player, int k, int i, int j, int numberBirds);
+    void playRandomTurn(Player& player);
+
 
     std::vector<Player> players; /**< Vector of players of the game. */
     Table table; /**< Table of the game. */
