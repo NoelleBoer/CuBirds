@@ -226,8 +226,10 @@ private:
      * @return Obtained score (10-28 per card)
      */
     float scoreGreedyCards(std::vector<int> enclosedBirds);
-    void playMCTurn(Player& player, int k, int i, int j, int numberBirds);
+    void playMCCards(Player& player, int k, int i, int j, int numberBirds);
+    void playMCFamily(Player& player, int m);
     void playRandomTurn(Player& player);
+    void checkForEmptyHand();
 
 
     std::vector<Player> players; /**< Vector of players of the game. */
