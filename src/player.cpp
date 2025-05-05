@@ -1,9 +1,7 @@
 #include "player.h"
 
-#include <iostream>
-
 Player::Player(int index) 
-    : hand{}, collection{}, index(index), k(1),l(1),m(1),n(1),o(1), p(1){}
+    : hand{}, collection{}, index(index), k(0.5),l(0.5),m(0.3),n(0.5),o(1.8), p(0.5){}
 
 
 void Player::drawCard(int id) {
@@ -24,10 +22,7 @@ void Player::emptyHand() {
     }
 }
 
-//Print functions
 void Player::printHand() {
-    std::array<std::string, 8>  birdTypes = {"Flamingo    ", "Owl         ", "Toucan      ", "Duck        ", 
-                                      "Parrot      ", "Magpie      ", "Reed Warbler", "Robin       "};
     std::cout << "Hand of player " << index << ": "<< std::endl;
     for (int i = 0; i < kindsOfBirds; i++){
         std::cout << i << ". " << birdTypes[i] << ": " << hand[i] << std::endl;
@@ -36,8 +31,6 @@ void Player::printHand() {
 }
 
 void Player::printCollection() {
-    std::array<std::string, 8>  birdTypes = {"Flamingo    ", "Owl         ", "Toucan      ", "Duck        ", 
-                                      "Parrot      ", "Magpie      ", "Reed Warbler", "Robin       "};
     std::cout << "Collection of player " << index << ": " << std::endl;
     for (int i = 0; i < kindsOfBirds; i++){
         std::cout << i << ". " << birdTypes[i] << ": " << collection[i] << std::endl;
@@ -45,12 +38,11 @@ void Player::printCollection() {
     std::cout << std::endl;
 }
 
-//Get functions
-std::array<int, 8>  Player::getCollection() {
+std::array<int, kindsOfBirds>  Player::getCollection() {
     return collection;
 }
 
-std::array<int, 8>  Player::getHand() {
+std::array<int, kindsOfBirds>  Player::getHand() {
     return hand;
 }
 
@@ -90,9 +82,7 @@ float Player::getP() {
     return o;
 }
 
-
-//Set functions
-void Player::setHand(std::array<int, 8>  newHand){
+void Player::setHand(std::array<int, kindsOfBirds>  newHand){
     hand = newHand;
 }
 
@@ -105,6 +95,6 @@ void Player::setVariables(float vark, float varl, float varm, float varn, float 
     p = varp;
 }
 
-void Player::setCollection(std::array<int,8> newCollection) {
+void Player::setCollection(std::array<int,kindsOfBirds> newCollection) {
     collection = newCollection;
 }

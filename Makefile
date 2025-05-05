@@ -4,7 +4,7 @@ CXXFLAGS = -std=c++17 -g -Wall -Iinclude -I/usr/include
 
 
 # Define the target executable
-TARGET = CuBirdsGame
+TARGET = cubirds
 
 # Define the directories for source files and object files
 SRC_DIR = src

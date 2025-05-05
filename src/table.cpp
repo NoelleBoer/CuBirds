@@ -1,12 +1,12 @@
 #include "table.h"
-#include <random>
-#include <iostream>
 
-Table::Table() {}
+Table::Table() : rng(std::random_device{}()) {}
 
 void Table::addCards(int id, int rowNumber, bool side, int numberOfCards) {
     for (int i = 0; i < numberOfCards; i++){
+        // Add cards to the left
         if (!side) table[rowNumber].insert(table[rowNumber].begin(), id);
+        // Or the right side of vector @rowNumber in @table
         else table[rowNumber].push_back(id);
     }
 }
@@ -35,10 +35,8 @@ bool Table::drawPileEmpty(){
 int Table::drawCard() {
     if (!drawPileEmpty()){
         int totalCards = getDrawSize();
-        std::random_device rd;  // Seed
-        std::mt19937 gen(rd()); // Mersenne Twister RNG
         std::uniform_int_distribution<int> dis(1, totalCards);
-        int randomCard = dis(gen);
+        int randomCard = dis(rng);
 
         // Map the random number to a card ID based on weights
         int cumulativeSum = 0;
@@ -62,9 +60,9 @@ void Table::reshuffleFromDiscardPile() {
 
 std::vector<int> Table::resolveRow(int id, int rowNumber, int side, int numberCards){
     if (numberCards == 0) return {};
-    std::vector<int> collectedCards; //Keeps track of which cards are to be collected
+    std::vector<int> collectedCards; //Keeps track of collected cards
     int indexBreak = -1; // To mark where the enclosing id is found
-    std::vector<int> row = getRow(rowNumber); // Copy of the row that is to be resolved
+    std::vector<int> row = getRow(rowNumber); // Copy of the row that will be resolved
 
     if (side == 0) { // Cards were added to the left
         for (size_t i = numberCards; i < row.size(); ++i) {
@@ -124,10 +122,7 @@ std::vector<int> Table::resolveRow(int id, int rowNumber, int side, int numberCa
     return collectedCards;
 }
 
-//Print functions
 void Table::printDrawPile() {
-    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
-                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
     std::cout << "Drawpile: " << std::endl;
     for (int i = 0; i < kindsOfBirds; i++){
         std::cout << birdTypes[i] << ": " << drawPile[i] << std::endl;
@@ -136,8 +131,6 @@ void Table::printDrawPile() {
 }
 
 void Table::printDiscardPile() {
-    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
-                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
     std::cout << "Discardpile: " << std::endl;
     for (int i = 0; i < kindsOfBirds; i++){
         std::cout << birdTypes[i] << ": " << discardPile[i] << std::endl;
@@ -156,8 +149,6 @@ void Table::printTable(){
 }
 
 void Table::printTableTypes(){
-    std::array<std::string, 8>  birdTypes = {"Flamingo", "Owl", "Toucan", "Duck", 
-                                      "Parrot", "Magpie", "Reed Warbler", "Robin"};
     for (int i = 0; i < numberOfRows; i++){
         for (int card : table[i]) {
             std::cout << birdTypes[card] << " ";
@@ -166,7 +157,6 @@ void Table::printTableTypes(){
     }
 }
 
-//Get functions
 int Table::getDiscardSize(){
     int totalSize = 0;
     for (int i = 0; i < kindsOfBirds; i++){
@@ -183,11 +173,11 @@ int Table::getDrawSize(){
     return totalSize;
 }
 
-std::array<int, 8> Table::getDrawPile(){
+std::array<int, kindsOfBirds> Table::getDrawPile(){
     return drawPile;
 }
 
-std::array<int, 8> Table::getDiscardPile(){
+std::array<int, kindsOfBirds> Table::getDiscardPile(){
     return drawPile;
 }
 
@@ -195,8 +185,7 @@ std::vector<int> Table::getRow(int rowNumber) const {
     return table[rowNumber];
 }
 
-//Set functions
-void Table::setDrawPile(std::array<int, 8> drawVector) {
+void Table::setDrawPile(std::array<int, kindsOfBirds> drawVector) {
     drawPile = drawVector;
 }
 
@@ -204,6 +193,6 @@ void Table::setRow(std::vector<int> row, int rowNumber){
     table[rowNumber] = row;
 }
 
-void Table::setDiscardPile(std::array<int, 8> discardVector) {
+void Table::setDiscardPile(std::array<int, kindsOfBirds> discardVector) {
     discardPile = discardVector;
 }

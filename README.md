@@ -1,8 +1,5 @@
 # CuBirds 
-A C++ version of the card game CuBirds which you can use to find an optimal strategy for CuBirds. 
-
-## Description
-This project implements a number of CuBirds players which you can play against each other for several rounds to find the best player
+A C++ version of the card game CuBirds, which you can use to find an optimal strategy for CuBirds. The implemented strategies are a genetic algorithm and brute monte carlo simulation.
 
 ## Installation
 Clone the repository: <br/> 
@@ -15,9 +12,4 @@ Run the project:<br/>
 ```./CuBirdsGame```<br/> 
 
 ## Usage
-The implementation is build for a 2 player version of CuBirds. (This could easily be changed to a 2+ player version). To test the different players you can change the playertype in main.cpp.
-
-## Implement 2+ player version
-To change the number of players change the following functions:<br/> 
-main() in main.cpp -> change the size of the array arr<br/> 
-game() in game.cpp -> more arguments and more players pushed to the player vector<br/> 
+The implementation is build for a 2 player version of CuBirds. You can run different tests which are described in main.cpp. You can run these tests by uncommenting parts of the main function and changing the boolean values. 

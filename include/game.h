@@ -2,9 +2,6 @@
 #define GAME_H
 
 #include "player.h"
-#include "table.h"
-#include <vector>
-#include <array>
 #include <chrono>
 
 /**
@@ -17,55 +14,28 @@
 
 class Game {
 public:
+    /* --- STANDARD GAME LOGIC --- */
+
     /**
      * @brief Constructor for the game class
      * 
-     * In this constructer the players are made with a specified type and index
+     * - Turn is initalized at 0
+     * - The drawpile is initialized
+     * - Cards are placed in rows on the table
+     * - Players get 8 cards in hand and 1 in collection
+     * - The discardpile is added to the drawpile, to start with an empty discardpile
      */
     Game();
 
     /**
-     * @brief Plays the game untill there is a winner
+     * @brief Checks and handles when a player has an empty hand
      * 
-     * @returns winning player and the way this player won
      * 
-     * First int is the index of the winning player or 0 for a tie
-     * Second int is 0 for win by empty deck, 1 for win by 7 different species and 2 for win by 2x3 birds
-     * 
+     * @return Whether there was an empty hand
      */
-    std::pair<int, int> play();
+    bool checkForEmptyHand();
 
-    /**
-     * @brief Get the current turn the game is at
-     * 
-     * @return The current turn the game is at
-     */
-    int getTurn();
 
-    /**
-     * @brief Get the total amount of time for player 1
-     * @return The total time player 1 played
-     */
-    std::chrono::duration<double> getTimeP1();
-
-    /**
-     * @brief Get the total amount of time for player 2
-     * @return The total time player 2 played
-     */
-    std::chrono::duration<double> getTimeP2();
-
-    void setPlayer1 (float k, float l, float m, float n, float o, float p);
-    void setPlayer2 (float k, float l, float m, float n, float o, float p);
-    void setCollectionP1 (std::array<int, 8>  newCollection);
-    void setCollectionP2 (std::array<int, 8>  newCollection);
-    void setHandP1 (std::array<int, 8>  newHand);
-    void setHandP2 (std::array<int, 8>  newHand);
-    void setTable (std::array<std::vector<int>, 4> newTable);
-    void setDraw (std::array<int, 8>  newDraw);
-    void setDiscard (std::array<int, 8>  newDiscard);
-    std::pair<int, int> playMCGame ();
-
-private:
     /**
      * @brief Ends the game when the deck is empty
      * 
@@ -76,20 +46,7 @@ private:
     int endGame();
 
     /**
-     * @brief Handles the turn of a player
-     * 
-     * First a player must plays cards
-     * Then a player can play a family
-     * Then there is checked whether the players' hand is empty
-     * When the hand is empty everybodies hand is put in discard and everybody gets 8 new cards
-     * The current player gets another turn
-     *
-     * @param player Player whose turn it is
-     */
-    void playTurn(Player& player);
-
-    /**
-     * @brief Checks if there is a winning player
+     * @brief Checks if @player has a complete collection
      * 
      * If there is a player with seven different birds or two sets of three birds in his collection
      * this player wins.
@@ -102,22 +59,11 @@ private:
      */
     int checkForWin(Player& player);
 
-    /**
-     * @brief Plays a family
-     * 
-     * This function makes sure that a player plays a family according to the
-     * strategy of this type of player. The cards are discarded from hand and
-     * the right number of cards are added to the collection of the player.
-     * 
-     * @param player Player whose turn it is
-     */
-    void playFamily(Player& player);
-
-    /**
+        /**
      * @brief Resolves the table after cards are played
      * 
      * Resolves the row on the table and lets the player add the cards
-     * to hand that are to be collected. Ends the game if necessary.
+     * to hand that are collected. Ends the game if necessary.
      * 
      * @param player Player whose turn it is
      * @param row Row where cards were played
@@ -129,27 +75,35 @@ private:
      */
     bool resolveTable(Player& player, int row, int id, int side, int numberCards);
 
-    /**
-     * @brief Playes cards for playerType 0
-     * 
-     * - chooses a weighted random card from hand and playes this type
-     * - 50% chance to draw cards when no cards are collected
-     * 
-     * @param player Current player 
-     * 
-     */
-    void playRandomCards(Player& player);
+
+
+    /* --- STANDARD PLAY LOGIC --- */
 
     /**
-     * @brief Playes a greedy family
+     * @brief Plays the game until there is a winner
      * 
-     * First tries to play a big family (rarest bird first)
-     * Then tries to play a small family (rarest bird first)
+     * @returns winning player and the way this player won
      * 
-     * @param player Current player 
+     * This function also keeps track of the time each player takes to play the game and the turn
+     * 
+     * First int is the index of the winning player or 0 for a tie
+     * Second int is 0 for win by empty deck, 1 for win by 7 different species and 2 for win by 2x3 birds
      * 
      */
-    void playGreedyFamily(Player& player);
+    std::pair<int, int> play();
+
+    /**
+     * @brief Handles the turn of a player
+     * 
+     * First a player must plays cards
+     * Then a player can play a family
+     * Then there is checked whether the players' hand is empty
+     * When the hand is empty everyones hand is put in discard 
+     *      and everybody gets 8 new cards and the current player gets another turn
+     *
+     * @param player Player whose turn it is
+     */
+    void playTurn(Player& player);
 
     /**
      * @brief Checks which birds would be enclosed in a row
@@ -160,6 +114,17 @@ private:
      * @return A vector of the enclosed birds
      */
     std::vector<int> birdsEnclosed(std::vector<int> row, int id);
+
+    /**
+     * @brief Plays a family
+     * 
+     * This function makes sure that a player plays a family according to the
+     * strategy of this type of player. The cards are discarded from hand and
+     * the right number of cards are added to the collection of the player.
+     * 
+     * @param player Player whose turn it is
+     */
+    void playFamily(Player& player);
 
     /**
      * @brief Plays a family for a collection of seven different birds
@@ -197,17 +162,8 @@ private:
      * @brief Score cards based on a number of factors
      * If the type = 0 or the type < turn we play greedy
      * 
-     * Scored based on:
-     * - How much needed for own collection (scaled by k)
-     * - How much the player needs the cards on the next turn (scaled by l)
-     * - Rarity of the cards (scaled by m)
-     * - How much the opponent needs the cards (scaled by n)
+     * Scored based on the variables of the @player
      * 
-     * The total score = 
-     * [0,10]*rarityScore*k*numberOfCollectedCards (How much the cards is needed for own collection)
-     * [0,10]*rarityScore*l*numberOfCollectedCards (How much the cards are worth in the future)
-     * [0,10]*rarityScore*m*numberOfCollectedCards (How much the cards are scored for the opponent)
-     * -10*rarityScore*numberOfCardsSpent (How much the cards we spend are worth)
      * 
      * @param player Current player
      * @param enclosedBirds Birds that are enclosed by a certain move
@@ -218,32 +174,143 @@ private:
      */
     float scoreCards(Player& player, std::vector<int> enclosedBirds, bool test, int id);
 
+
+
+    /* --- MC GAME LOGIC--- */
     /**
-     * @brief Calculates a greedy score for a vector of cards
+     * @brief Plays a turn for a random player
      * 
-     * @param enclosedBirds Vector of birds to be scored
+     * - Chooses randomly (weighted) which birdtype to play
+     * - Chooses randomly the row and side to play this type
+     * - Chooses randomly whether to play a family
      * 
-     * @return Obtained score (10-28 per card)
+     * @param player Current player 
+     * 
      */
-    float scoreGreedyCards(std::vector<int> enclosedBirds);
-    void playMCCards(Player& player, int k, int i, int j, int numberBirds);
-    void playMCFamily(Player& player, int m);
     void playRandomTurn(Player& player);
-    void checkForEmptyHand();
+
+    /**
+     * @brief Plays cards at a specific location on the table
+     * 
+     * @param player Current player 
+     * @param k Index of the birdtype to play
+     * @param i Row to play
+     * @param j Side to play
+     * 
+     * 
+     */
+    void playMCCards(Player& player, int k, int i, int j, int numberBirds);
+
+    /**
+     * @brief Plays a specific family
+     * 
+     * @param player Current player 
+     * @param m Index of the birdtype [1,9]
+     * 
+     */
+    void playMCFamily(Player& player, int m);
+
+    /**
+     * @brief Plays the game until there is a winner
+     * 
+     * @returns winning player and the way this player won
+     * 
+     * This function also keeps track of the time each player takes to play the game and the turn
+     * 
+     * First int is the index of the winning player or 0 for a tie
+     * Second int is 0 for win by empty deck, 1 for win by 7 different species and 2 for win by 2x3 birds
+     * 
+     */
+    std::pair<int, int> playMCGame ();
+    
+
+    /* --- GET FUNCTIONS --- */
+
+    /**
+     * @brief Get the current turn the game is at
+     * 
+     * @return The current turn the game is at
+     */
+    int getTurn();
+
+    /**
+     * @brief Get the total amount of time for player 1
+     * @return The total time player 1 played
+     */
+    std::chrono::duration<double> getTimeP1();
+
+    /**
+     * @brief Get the total amount of time for player 2
+     * @return The total time player 2 played
+     */
+    std::chrono::duration<double> getTimeP2();
 
 
-    std::vector<Player> players; /**< Vector of players of the game. */
-    Table table; /**< Table of the game. */
-    int turn; /**< Which turn are the players on */
+    /* --- SET FUNCTIONS --- */
+    /**
+     * @brief Set the variables for player 1
+     * 
+     * @param player Player whose variables are set
+     * @param k Variable k, see player class
+     * @param l Variable l, see player class
+     * @param m Variable m, see player class
+     * @param n Variable n, see player class
+     * @param o Variable o, see player class
+     * @param p Variable p, see player class
+     */
+    void setPlayer1 (float k, float l, float m, float n, float o, float p);
 
+    /**
+     * @brief Set the variables for player 2
+     * 
+     * @param player Player whose variables are set
+     * @param k Variable k, see player class
+     * @param l Variable l, see player class
+     * @param m Variable m, see player class
+     * @param n Variable n, see player class
+     * @param o Variable o, see player class
+     * @param p Variable p, see player class
+     */
+    void setPlayer2 (float k, float l, float m, float n, float o, float p);
+
+    /**
+     * @brief Set a @collection for player 1
+     * 
+     * @param player Player whose collection is renewed
+     * @param newCollection Array of the new collection
+     */
+    void setCollectionP1 (std::array<int, kindsOfBirds>  newCollection);
+
+    /**
+     * @brief Set a @collection for player 2
+     * 
+     * @param player Player whose collection is renewed
+     * @param newCollection Array of the new collection
+     */
+    void setCollectionP2 (std::array<int, kindsOfBirds>  newCollection);
+
+    /**
+     * @brief Set a @hand for player 1
+     * 
+     * @param player Player whose collection is renewed
+     * @param newCollection Array of the new hand
+     */
+    void setHandP1 (std::array<int, kindsOfBirds>  newHand);
+
+    /**
+     * @brief Set a @hand for player 2
+     * 
+     * @param player Player whose collection is renewed
+     * @param newCollection Array of the new hand
+     */
+    void setHandP2 (std::array<int, kindsOfBirds>  newHand);
+
+private:
+    std::vector<Player> players; /**< Vector of players of the game*/
+    Table table; /**< Table of the game */
+    int turn; /**< Tracker of the turn*/
     std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0); /**< Total duration of player 1 turns*/
     std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0); /**< Total duration of player 2 turns*/
-
-    //Card information:
-    std::array<int, 8>  smallFam = {2,3,3,4,4,5,6,6}; /**< Amount of birds needed for a small family*/
-    std::array<int, 8>  bigFam = {3,4,4,6,6,7,9,9}; /**<  Amount of birds needed for a big family*/
-    std::array<int, 8>  numberBirds = {7,10,10,13,13,17,20,20}; /**<  Amount of birds in the game*/
-    std::array<float, 8>  rarityScore = {1,0.538,0.538,0.290,0.290,0.095,0,0}; /**<  Score based on rarity in the game*/
 };
 
 #endif // GAME_H
