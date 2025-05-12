@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream> 
 #include <filesystem>
+#include <iostream>
 #include <nlohmann/json.hpp>
 
 /**
@@ -148,10 +149,10 @@ void printResultsJSONFile(std::array<std::array<int, 3>, 3> scores,
  * 
  * @param MCGame Determines whether to play in standard mode or in MC mode
  * @param shell Determines whether to print the results to the shell or to a json file
+ * @param nRepeats The number of times a game is played
  * 
  */
-void testPlayers(bool MCGame, bool shell){
-    const int nRepeats = 10; // Number of times the game is played
+void testPlayers(bool MCGame, bool shell, int nRepeats){
     std::array<std::array<int, 3>, 3> scores{}; // Keeps the score of each game
     std::pair<int, int> winner; // Variable that has the index of the winner and the way that is won
     float totalTurns = 0; // Keeps track of the total amount of turns of each game
@@ -179,12 +180,12 @@ void testPlayers(bool MCGame, bool shell){
  * @brief Uses a genetic Algorithm to find the best parameters for k,l,m,n,o,p
  * 
  * @param shell Determines whether to print the results to the shell or to a json file
+ * @param nRepeats The number of times a game is played
  */
-void geneticAlgorithm(bool shell) {
+void geneticAlgorithm(bool shell, int nRepeats) {
     const int populationSize = 200;
     const int generations = 100;
     const float initialMutationRate = 0.2f;
-    const int nRepeats = 3;
     const int numberOpponents = 10;
 
     struct Player {
@@ -295,10 +296,9 @@ void geneticAlgorithm(bool shell) {
  * 
  * @param MCGame Determines whether to play in standard mode or in MC mode
  * @param shell Determines whether to print the results to the shell or to a json file
+ * @param nRepeats The number of times a game is played
  */
-void testStartingSetups(bool MCGame, bool shell) {
-    const int nRepeats = 10;
-
+void testStartingSetups(bool MCGame, bool shell, int nRepeats) {
     std::array<int, kindsOfBirds> collectionP1{};
     std::array<int, kindsOfBirds> collectionP2{};
     std::array<std::array<std::array<int, 2>, kindsOfBirds>, kindsOfBirds> winners{}; // [i][j][0] = P1 wins, [i][j][1] = P2 wins
@@ -357,8 +357,7 @@ void testStartingSetups(bool MCGame, bool shell) {
  * @brief Uses brute monte carlo simulation to determine turns and play the game
  * 
  */
-void monteCarlo(bool shell) {
-    const int nRepeats = 1000; // Number of times the game is played
+void monteCarlo(bool shell, int nRepeats) {
     std::array<std::array<int, 3>, 3> scores{}; // Keeps the score of each game
     std::pair<int, int> winner; // Variable that has the index of the winner and the way that is won
     float totalTurns = 0; // Keeps track of the total amount of turns of each game
@@ -380,10 +379,27 @@ void monteCarlo(bool shell) {
 
 int main() {
     bool MCGame = false;
-    bool shell = true;
-    // testPlayers(MCGame, shell);
-    // testStartingSetups(MCGame, shell);
-    // geneticAlgorithm(shell);
-    // monteCarlo(shell)
+    bool shell = false;
+    int nRepeats = 1000;
+
+    std::cout << "Start Running Tests" << std::endl;
+    std::cout << "Settings: " << std::endl;
+    if (MCGame) std::cout << "Monte Carlo: On" << std::endl;
+    else std::cout << "Monte Carlo: Off" << std::endl;
+    if (shell) std::cout << "Results are printed to the shell" << std::endl;
+    else std::cout << "Results are stored in JSON files in /results" << std::endl;
+    std::cout << "For every test " << nRepeats << " games are ran" << std::endl;
+
+    testPlayers(MCGame, shell, nRepeats);
+    std::cout << "Finished Testing Players" << std::endl;
+
+    testStartingSetups(MCGame, shell, nRepeats);
+    std::cout << "Finished Testing Starting Setups" << std::endl;
+
+    geneticAlgorithm(shell, nRepeats);
+    std::cout << "Finished Testing Genetic Algorithm" << std::endl;
+
+    monteCarlo(shell, nRepeats);
+    std::cout << "Finished Testing Monte Carlo" << std::endl;
     return 0;
 }

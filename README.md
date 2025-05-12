@@ -26,7 +26,7 @@ make
 
 Run the executable:
 ```bash
-./CuBirdsGame
+./cubirds
 ```
 
 ## Strategy AI

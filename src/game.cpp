@@ -73,20 +73,22 @@ int Game::endGame() {
 bool Game::checkForEmptyHand () {
     bool emptyHand = false;
     for (Player& player : players) {
-        if (player.getHandSize() == 0 && table.getDrawSize() > 15) {
+        if (player.getHandSize() == 0) {
             emptyHand = true;
-            //The hand of every player goes to discard pile
-            for (Player& plr : players) {
-                for (int i = 0; i < kindsOfBirds; i++){
-                    for (int j = 0; j < plr.getHand()[i]; j++) table.addCardToDiscard(i);
+            if (!table.drawPileEmpty() && table.getDrawSize() > 15) {
+                //The hand of every player goes to discard pile
+                for (Player& plr : players) {
+                    for (int i = 0; i < kindsOfBirds; i++){
+                        for (int j = 0; j < plr.getHand()[i]; j++) table.addCardToDiscard(i);
+                    }
+                    plr.emptyHand();
                 }
-                plr.emptyHand();
-            }
-            //Every player gets 8 new cards (if there are enough in the drawpile)
-            for (Player& plr : players) {
-                for (int i = 0; i < kindsOfBirds; i++) {
-                    if (!table.drawPileEmpty()) plr.drawCard(table.drawCard());
-                    else break;
+                //Every player gets 8 new cards (if there are enough in the drawpile)
+                for (Player& plr : players) {
+                    for (int i = 0; i < kindsOfBirds; i++) {
+                        if (!table.drawPileEmpty()) plr.drawCard(table.drawCard());
+                        else break;
+                    }
                 }
             }
         }
@@ -158,11 +160,8 @@ void Game::playTurn(Player& player) {
     // Collect cards by playing family
     if(!table.drawPileEmpty()) playFamily(player);
 
-    //Check if the hand of the player is empty
-    if (checkForEmptyHand()
-        && table.getDrawSize() > 15
-        && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0))
-        playTurn(player);
+    //Check if the hand of the player is empty, extra turn if it is
+    if (checkForEmptyHand() && player.getHandSize() != 0) playTurn(player);
 }
 
 std::vector<int> Game::birdsEnclosed(std::vector<int> row, int id) {
@@ -461,25 +460,17 @@ float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test
 
 /* --- MC GAME LOGIC--- */
 void Game::playRandomTurn(Player& player) {
-    bool handEmpty = checkForEmptyHand();
-    if (handEmpty && table.getDrawSize() > 15 
-        && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) {
-        playTurn(player);
-        handEmpty = false;
-    } else if (handEmpty) return;
+    if (table.drawPileEmpty() || table.getDrawSize() <= 15 
+        || player.getHandSize() == 0)
+        return;
+
     bool cardsCollected = false; // Keeps track whether any cards were collected
     int totalWeight = 0; //Total amount of cards in players hand
     int playingType = 0; //Birdtype that is played
     for (int i = 0; i < kindsOfBirds; i++) {
         totalWeight += player.getHand()[i];
     }
-    if (totalWeight == 0) {
-        table.printTable();
-        player.printHand();
-        player.printCollection();
-        table.printDiscardPile();
-        table.printDrawPile();
-    }
+
     // Choose a random number between 1 and totalWeight
     std::uniform_int_distribution<int> dis(1, totalWeight);
     int randomCard = dis(table.getRNG());
@@ -541,12 +532,7 @@ void Game::playRandomTurn(Player& player) {
             }
         }
     }
-    handEmpty = checkForEmptyHand();
-    if (handEmpty && table.getDrawSize() > 15 
-        && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) {
-        playRandomTurn(player);
-        handEmpty = false;
-    } else if (handEmpty) return;
+    if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
 }
 
 void Game::playMCCards(Player &player, int k, int i, int j, int numberBirds) {
@@ -591,126 +577,117 @@ std::pair<int, int> Game::playMCGame () {
     int numberWins = 0;
     int gameEnds = 0; // Keeps track of whether a collections is complete
     int nRepeats = 100; // How many games are played per possible move
-    bool handEmpty = false;
     std::vector<int> cRow0, cRow1, cRow2, cRow3;
     std::array<int, kindsOfBirds> cHand0, cHand1, cCollection0, cCollection1;
     std::array<int, kindsOfBirds> cDiscardPile, cDrawPile;
     int maxWins = -1, maxI = 0, maxJ = 0, maxK = 0, maxM = 0;
     while (true) {
         for (Player& player : players) { 
-            maxWins = -1;
-            if (table.drawPileEmpty()) 
-            return std::make_pair(0, endGame()); // End the game if the drawpile is empty
-            if (table.getDrawSize() <= 15 && 
-                (players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) 
-                return std::make_pair(0, endGame());
-            
-            //Start the time for the current player
-            auto start = std::chrono::high_resolution_clock::now();
+            while (true) {
+                maxWins = -1;
+                if (table.drawPileEmpty()) 
+                return std::make_pair(0, endGame()); // End the game if the drawpile is empty
+                if (table.getDrawSize() <= 15 && 
+                    (players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) 
+                    return std::make_pair(0, endGame());
+                
+                //Start the time for the current player
+                auto start = std::chrono::high_resolution_clock::now();
 
-            //Store the current state
-            cRow0 = table.getRow(0);
-            cRow1 = table.getRow(1);
-            cRow2 = table.getRow(2);
-            cRow3 = table.getRow(3);
-            cHand0 = players[0].getHand();
-            cHand1 = players[1].getHand();
-            cCollection0 = players[0].getCollection();
-            cCollection1 = players[1].getCollection();
-            cDiscardPile = table.getDiscardPile();
-            cDrawPile = table.getDrawPile();
+                //Store the current state
+                cRow0 = table.getRow(0);
+                cRow1 = table.getRow(1);
+                cRow2 = table.getRow(2);
+                cRow3 = table.getRow(3);
+                cHand0 = players[0].getHand();
+                cHand1 = players[1].getHand();
+                cCollection0 = players[0].getCollection();
+                cCollection1 = players[1].getCollection();
+                cDiscardPile = table.getDiscardPile();
+                cDrawPile = table.getDrawPile();
 
-            //Play out random games for every possible move
-            for (int i = 0; i < numberOfRows; i++){
-                for (int j = 0; j < numberSides; j++) {
-                    for (int k = 0; k < kindsOfBirds; k++){
-                        if (player.getHand()[k] != 0){
-                            // For every possible family that can be layed down
-                            for (int m = 0; m <= kindsOfBirds; m++) {
-                                numberWins = 0; 
-                                if (player.getIndex() == 1) skipFirstTurn = true;
-                                for (int l = 0; l < nRepeats; l++){
-                                    playMCCards(player, k,i,j,player.getHand()[k]);
-                                    if (m == kindsOfBirds) playMCFamily(player, m);
-                                    else if (player.getHand()[m] >= smallFam[m]) playMCFamily(player, m);
-                                    else break;
-                                    handEmpty = checkForEmptyHand();
-                                    if (handEmpty && table.getDrawSize() > 15 
-                                        && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) {
-                                        playRandomTurn(player);
-                                        handEmpty = false;
-                                    } else if (handEmpty) break;
-                                    // play out randomly and store the number of wins
-                                    while (true) {
-                                        for (Player& plr : players) { 
-                                            if (skipFirstTurn) skipFirstTurn = false;
-                                            else {
-                                                if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
-                                                    && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
-                                                    gameEnded = true;
-                                                }
-                                                if (!gameEnded) {
-                                                    playRandomTurn(plr); // Play the turn of a current player
-                                                    if(checkForWin(plr)!= 0) {
+                //Play out random games for every possible move
+                for (int i = 0; i < numberOfRows; i++){
+                    for (int j = 0; j < numberSides; j++) {
+                        for (int k = 0; k < kindsOfBirds; k++){
+                            if (player.getHand()[k] != 0){
+                                // For every possible family that can be layed down
+                                for (int m = 0; m <= kindsOfBirds; m++) {
+                                    numberWins = 0; 
+                                    if (player.getIndex() == 1) skipFirstTurn = true;
+                                    for (int l = 0; l < nRepeats; l++){
+                                        playMCCards(player, k,i,j,player.getHand()[k]);
+                                        if (m == kindsOfBirds) playMCFamily(player, m);
+                                        else if (player.getHand()[m] >= smallFam[m]) playMCFamily(player, m);
+                                        if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
+                                        // play out randomly and store the number of wins
+                                        while (true) {
+                                            for (Player& plr : players) { 
+                                                if (skipFirstTurn) skipFirstTurn = false;
+                                                else {
+                                                    if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
+                                                        && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
                                                         gameEnded = true;
-                                                        gameEnds = plr.getIndex();
+                                                    }
+                                                    if (!gameEnded) {
+                                                        playRandomTurn(plr); // Play the turn of a current player
+                                                        if(checkForWin(plr)!= 0) {
+                                                            gameEnded = true;
+                                                            gameEnds = plr.getIndex();
+                                                        }
+                                                    }
+                                                    if (gameEnded) {
+                                                        if (gameEnds == player.getIndex()) numberWins++;
                                                     }
                                                 }
-                                                if (gameEnded) {
-                                                    if (gameEnds == player.getIndex()) numberWins++;
-                                                }
+                                                if (gameEnded) break;
                                             }
                                             if (gameEnded) break;
                                         }
-                                        if (gameEnded) break;
+
+                                        // Put the game back in the previous state
+                                        table.setRow(cRow0, 0);
+                                        table.setRow(cRow1, 1);
+                                        table.setRow(cRow2, 2);
+                                        table.setRow(cRow3, 3);
+                                        players[0].setHand(cHand0);
+                                        players[1].setHand(cHand1);
+                                        players[0].setCollection(cCollection0);
+                                        players[1].setCollection(cCollection1);
+                                        table.setDiscardPile(cDiscardPile);
+                                        table.setDrawPile(cDrawPile);
+
+                                        // Reset variables
+                                        gameEnded = false;
+                                        gameEnds = 0;
                                     }
-
-                                    // Put the game back in the right state
-                                    table.setRow(cRow0, 0);
-                                    table.setRow(cRow1, 1);
-                                    table.setRow(cRow2, 2);
-                                    table.setRow(cRow3, 3);
-                                    players[0].setHand(cHand0);
-                                    players[1].setHand(cHand1);
-                                    players[0].setCollection(cCollection0);
-                                    players[1].setCollection(cCollection1);
-                                    table.setDiscardPile(cDiscardPile);
-                                    table.setDrawPile(cDrawPile);
-
-                                    // Reset variables
-                                    gameEnded = false;
-                                    gameEnds = 0;
-                                }
-                                // If a new maximum of wins is found change the variables
-                                if (numberWins > maxWins) {
-                                    maxWins = numberWins;
-                                    maxI = i; 
-                                    maxJ = j;
-                                    maxK = k;
-                                    maxM = m;
+                                    // If a new maximum of wins is found change the variables
+                                    if (numberWins > maxWins) {
+                                        maxWins = numberWins;
+                                        maxI = i; 
+                                        maxJ = j;
+                                        maxK = k;
+                                        maxM = m;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-            }
-            //Play the best move
-            turn++;
-            playMCCards(player, maxK,maxI,maxJ,player.getHand()[maxK]);
-            playMCFamily(player, maxM);
+                //Play the best move
+                turn++;
+                playMCCards(player, maxK,maxI,maxJ,player.getHand()[maxK]);
+                playMCFamily(player, maxM);
 
-            //Stop the time for the current player
-            auto end = std::chrono::high_resolution_clock::now();
-            //Add the time of the turn to the right counter
-            if (player.getIndex() == 1) totalTimeP1 += end - start;
-            else totalTimeP2 += end-start;
+                //Stop the time for the current player
+                auto end = std::chrono::high_resolution_clock::now();
+                //Add the time of the turn to the right counter
+                if (player.getIndex() == 1) totalTimeP1 += end - start;
+                else totalTimeP2 += end-start;
 
-            handEmpty = checkForEmptyHand();
-            if (handEmpty && table.getDrawSize() > 15 
-                && !(players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) {
-                playRandomTurn(player);
-                handEmpty = false;
+                if (!checkForEmptyHand()) break; // If the players hand is empty he gets another turn
             }
+
             gameEnds = checkForWin(player); // End the game if the collection is complete
             if (gameEnds!=0) return std::make_pair(gameEnds,player.getIndex());
         }
@@ -749,13 +726,13 @@ void Game::setCollectionP1 (std::array<int, kindsOfBirds>  newCollection) {
 }
 
 void Game::setCollectionP2 (std::array<int, kindsOfBirds>  newCollection) {
-    std::array<int,kindsOfBirds> oldCollection = players[0].getCollection();
+    std::array<int,kindsOfBirds> oldCollection = players[1].getCollection();
     for (int i = 0; i < kindsOfBirds; i++){
         table.discardPile[i]+=oldCollection[i];
         table.reshuffleFromDiscardPile();
         table.drawPile[i]-=newCollection[i];
     }
-    players[0].setCollection(newCollection);
+    players[1].setCollection(newCollection);
 }
 
 
