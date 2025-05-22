@@ -161,6 +161,7 @@ void testPlayers(bool MCGame, bool shell, int nRepeats){
 
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
+        std::cout << "Running Game " << i << " ..." << std::endl;
         Game game;
         // Enter game settings below. For example:
         // game.setPlayer1(0.5,0.5,0.3,0.5,1.8,0.5);
@@ -218,6 +219,7 @@ void geneticAlgorithm(bool shell, int nRepeats) {
     }
 
     for (int g = 0; g < generations; g++) {
+        std::cout << "Running Generation " << g << " ..." << std::endl;
         float mutationRate = initialMutationRate * (1.0f - g / float(generations));
         std::vector<std::pair<Player, double>> scoredPopulation;
 
@@ -305,6 +307,7 @@ void testStartingSetups(bool MCGame, bool shell, int nRepeats) {
 
     for (int i = 0; i < kindsOfBirds; i++) {
         for (int j = 0; j < kindsOfBirds; j++) {
+            std::cout << "Running Game for player 1:" << i << " and player 2:"<< j << " ..." << std::endl;
             for (int k = 0; k < nRepeats; k++) {
                 collectionP1.fill(0);
                 collectionP2.fill(0);
@@ -366,6 +369,7 @@ void monteCarlo(bool shell, int nRepeats) {
 
     // Run the games and collect results
     for (int i = 0; i < nRepeats; i++) {
+        std::cout << "Running Game " << i << " ..." << std::endl;
         Game game;
         winner = game.playMCGame();
         totalTurns += game.getTurn();
@@ -378,27 +382,30 @@ void monteCarlo(bool shell, int nRepeats) {
 }
 
 int main() {
-    bool MCGame = false;
+    bool MCGame = true;
     bool shell = false;
     int nRepeats = 1000;
 
-    std::cout << "Start Running Tests" << std::endl;
     std::cout << "Settings: " << std::endl;
     if (MCGame) std::cout << "Monte Carlo: On" << std::endl;
     else std::cout << "Monte Carlo: Off" << std::endl;
     if (shell) std::cout << "Results are printed to the shell" << std::endl;
     else std::cout << "Results are stored in JSON files in /results" << std::endl;
-    std::cout << "For every test " << nRepeats << " games are ran" << std::endl;
+    std::cout << "For every test " << nRepeats << " games are ran" << std::endl << std::endl;
 
+    std::cout << "Started Testing Players" << std::endl;
     testPlayers(MCGame, shell, nRepeats);
     std::cout << "Finished Testing Players" << std::endl;
 
+    std::cout << "Started Testing Starting Setups" << std::endl;
     testStartingSetups(MCGame, shell, nRepeats);
     std::cout << "Finished Testing Starting Setups" << std::endl;
 
+    std::cout << "Started Testing Genetic Algorithm" << std::endl;
     geneticAlgorithm(shell, nRepeats);
     std::cout << "Finished Testing Genetic Algorithm" << std::endl;
 
+    std::cout << "Started Testing Monte Carlo" << std::endl;
     monteCarlo(shell, nRepeats);
     std::cout << "Finished Testing Monte Carlo" << std::endl;
     return 0;

@@ -460,8 +460,7 @@ float Game::scoreCards(Player& player, std::vector<int> enclosedBirds, bool test
 
 /* --- MC GAME LOGIC--- */
 void Game::playRandomTurn(Player& player) {
-    if (table.drawPileEmpty() || table.getDrawSize() <= 15 
-        || player.getHandSize() == 0)
+    if (table.drawPileEmpty() || (table.getDrawSize() <= 15 && player.getHandSize() == 0) || player.getHandSize() == 0)
         return;
 
     bool cardsCollected = false; // Keeps track whether any cards were collected
@@ -532,7 +531,6 @@ void Game::playRandomTurn(Player& player) {
             }
         }
     }
-    if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
 }
 
 void Game::playMCCards(Player &player, int k, int i, int j, int numberBirds) {
@@ -576,7 +574,7 @@ std::pair<int, int> Game::playMCGame () {
     bool skipFirstTurn = false;
     int numberWins = 0;
     int gameEnds = 0; // Keeps track of whether a collections is complete
-    int nRepeats = 100; // How many games are played per possible move
+    int nRepeats = 1000; // How many games are played per possible move
     std::vector<int> cRow0, cRow1, cRow2, cRow3;
     std::array<int, kindsOfBirds> cHand0, cHand1, cCollection0, cCollection1;
     std::array<int, kindsOfBirds> cDiscardPile, cDrawPile;
@@ -590,7 +588,6 @@ std::pair<int, int> Game::playMCGame () {
                 if (table.getDrawSize() <= 15 && 
                     (players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) 
                     return std::make_pair(0, endGame());
-                
                 //Start the time for the current player
                 auto start = std::chrono::high_resolution_clock::now();
 
@@ -617,7 +614,7 @@ std::pair<int, int> Game::playMCGame () {
                                     if (player.getIndex() == 1) skipFirstTurn = true;
                                     for (int l = 0; l < nRepeats; l++){
                                         playMCCards(player, k,i,j,player.getHand()[k]);
-                                        if (m == kindsOfBirds) playMCFamily(player, m);
+                                        if (m == kindsOfBirds) continue;
                                         else if (player.getHand()[m] >= smallFam[m]) playMCFamily(player, m);
                                         if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
                                         // play out randomly and store the number of wins
@@ -631,6 +628,7 @@ std::pair<int, int> Game::playMCGame () {
                                                     }
                                                     if (!gameEnded) {
                                                         playRandomTurn(plr); // Play the turn of a current player
+                                                        if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(plr);
                                                         if(checkForWin(plr)!= 0) {
                                                             gameEnded = true;
                                                             gameEnds = plr.getIndex();
