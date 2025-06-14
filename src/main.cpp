@@ -320,8 +320,8 @@ void testStartingSetups(bool MCGame, bool shell, int nRepeats) {
 
                 std::pair<int, int> winner = MCGame ? game.playMCGame() : game.play();
 
-                if (winner.first == 1) winners[i][j][0]++;
-                else if (winner.first == 2) winners[i][j][1]++;
+                if (winner.second == 1) winners[i][j][0]++;
+                else if (winner.second == 2) winners[i][j][1]++;
             }
         }
     }
@@ -381,10 +381,31 @@ void monteCarlo(bool shell, int nRepeats) {
     else printResultsJSONFile(scores, totalTurns, nRepeats, totalTimeP1, totalTimeP2,"results_mc.json");
 }
 
+void randomGame (bool shell, int nRepeats) {
+    std::array<std::array<int, 3>, 3> scores{}; // Keeps the score of each game
+    std::pair<int, int> winner; // Variable that has the index of the winner and the way that is won
+    float totalTurns = 0; // Keeps track of the total amount of turns of each game
+    std::chrono::duration<double> totalTimeP1 = std::chrono::duration<double>(0.0); // Keeps the time for player 1
+    std::chrono::duration<double> totalTimeP2 = std::chrono::duration<double>(0.0); // Keeps the time for player 2
+
+    // Run the games and collect results
+    for (int i = 0; i < nRepeats; i++) {
+        std::cout << "Running Game " << i << " ..." << std::endl;
+        Game game;
+        winner = game.playRandomGame();
+        totalTurns += game.getTurn();
+        totalTimeP1 += game.getTimeP1(); 
+        totalTimeP2 += game.getTimeP2();
+        scores[winner.first][winner.second]++;
+    }
+    if (shell) printResultsShell(scores, totalTurns, nRepeats, totalTimeP1, totalTimeP2);
+    else printResultsJSONFile(scores, totalTurns, nRepeats, totalTimeP1, totalTimeP2,"results_random.json");
+}
+
 int main() {
-    bool MCGame = true;
-    bool shell = false;
-    int nRepeats = 1000;
+    bool MCGame = false;
+    bool shell = true;
+    int nRepeats = 10000;
 
     std::cout << "Settings: " << std::endl;
     if (MCGame) std::cout << "Monte Carlo: On" << std::endl;
@@ -393,20 +414,24 @@ int main() {
     else std::cout << "Results are stored in JSON files in /results" << std::endl;
     std::cout << "For every test " << nRepeats << " games are ran" << std::endl << std::endl;
 
-    std::cout << "Started Testing Players" << std::endl;
-    testPlayers(MCGame, shell, nRepeats);
-    std::cout << "Finished Testing Players" << std::endl;
+    std::cout << "Started Testing Random Game" << std::endl;
+    randomGame(shell, nRepeats);
+    std::cout << "Finished Testing Random Game" << std::endl;
 
     std::cout << "Started Testing Starting Setups" << std::endl;
     testStartingSetups(MCGame, shell, nRepeats);
     std::cout << "Finished Testing Starting Setups" << std::endl;
 
-    std::cout << "Started Testing Genetic Algorithm" << std::endl;
-    geneticAlgorithm(shell, nRepeats);
-    std::cout << "Finished Testing Genetic Algorithm" << std::endl;
-
     std::cout << "Started Testing Monte Carlo" << std::endl;
     monteCarlo(shell, nRepeats);
     std::cout << "Finished Testing Monte Carlo" << std::endl;
+
+    std::cout << "Started Testing Players" << std::endl;
+    testPlayers(MCGame, shell, nRepeats);
+    std::cout << "Finished Testing Players" << std::endl;
+
+    std::cout << "Started Testing Genetic Algorithm" << std::endl;
+    geneticAlgorithm(shell, nRepeats);
+    std::cout << "Finished Testing Genetic Algorithm" << std::endl;
     return 0;
 }

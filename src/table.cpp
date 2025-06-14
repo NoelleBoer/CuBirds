@@ -178,7 +178,7 @@ std::array<int, kindsOfBirds> Table::getDrawPile(){
 }
 
 std::array<int, kindsOfBirds> Table::getDiscardPile(){
-    return drawPile;
+    return discardPile;
 }
 
 std::vector<int> Table::getRow(int rowNumber) const {

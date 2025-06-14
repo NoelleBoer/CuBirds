@@ -142,6 +142,7 @@ std::pair<int, int> Game::play() {
             auto start = std::chrono::high_resolution_clock::now();
             //Play the turn for the current player
             playTurn(player);
+
             // End the game if the collection of this player is complete
             gameEnds = checkForWin(player); 
             if (gameEnds!=0) return std::make_pair(gameEnds,player.getIndex());
@@ -582,9 +583,14 @@ std::pair<int, int> Game::playMCGame () {
     while (true) {
         for (Player& player : players) { 
             while (true) {
+                // Reset variables
                 maxWins = -1;
+                maxI = 0; 
+                maxJ = 0;
+                maxK = 0;
+                maxM = 0;
                 if (table.drawPileEmpty()) 
-                return std::make_pair(0, endGame()); // End the game if the drawpile is empty
+                    return std::make_pair(0, endGame()); // End the game if the drawpile is empty
                 if (table.getDrawSize() <= 15 && 
                     (players[0].getHandSize() == 0 || players[1].getHandSize() == 0)) 
                     return std::make_pair(0, endGame());
@@ -610,37 +616,62 @@ std::pair<int, int> Game::playMCGame () {
                             if (player.getHand()[k] != 0){
                                 // For every possible family that can be layed down
                                 for (int m = 0; m <= kindsOfBirds; m++) {
-                                    numberWins = 0; 
-                                    if (player.getIndex() == 1) skipFirstTurn = true;
                                     for (int l = 0; l < nRepeats; l++){
-                                        playMCCards(player, k,i,j,player.getHand()[k]);
-                                        if (m == kindsOfBirds) continue;
-                                        else if (player.getHand()[m] >= smallFam[m]) playMCFamily(player, m);
-                                        if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
-                                        // play out randomly and store the number of wins
-                                        while (true) {
-                                            for (Player& plr : players) { 
-                                                if (skipFirstTurn) skipFirstTurn = false;
-                                                else {
-                                                    if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
-                                                        && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
-                                                        gameEnded = true;
-                                                    }
-                                                    if (!gameEnded) {
-                                                        playRandomTurn(plr); // Play the turn of a current player
-                                                        if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(plr);
-                                                        if(checkForWin(plr)!= 0) {
+                                        if (m == kindsOfBirds) { // No family is played
+                                            numberWins = 0;
+                                            if (player.getIndex() == 1) skipFirstTurn = true;
+                                            playMCCards(player, k,i,j,player.getHand()[k]);
+                                            if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
+                                            // play out randomly and store the number of wins
+                                            while (true) {
+                                                for (Player& plr : players) { 
+                                                    if (skipFirstTurn) skipFirstTurn = false;
+                                                    else {
+                                                        if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
+                                                            && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
                                                             gameEnded = true;
-                                                            gameEnds = plr.getIndex();
+                                                        }
+                                                        if (!gameEnded) {
+                                                            playRandomTurn(plr); // Play the turn of a current player
+                                                            if (checkForEmptyHand() && plr.getHandSize() != 0) playRandomTurn(plr);
+                                                            if(checkForWin(plr)!= 0) {
+                                                                gameEnded = true;
+                                                                if (player.getIndex() == plr.getIndex()) numberWins++;
+                                                            }
                                                         }
                                                     }
-                                                    if (gameEnded) {
-                                                        if (gameEnds == player.getIndex()) numberWins++;
-                                                    }
+                                                    if (gameEnded) break;
                                                 }
                                                 if (gameEnded) break;
                                             }
-                                            if (gameEnded) break;
+                                        } else if (player.getHand()[m] >= smallFam[m]){
+                                            numberWins = 0;
+                                            if (player.getIndex() == 1) skipFirstTurn = true;
+                                            playMCCards(player, k,i,j,player.getHand()[k]);
+                                            playMCFamily(player, m);
+                                            if (checkForEmptyHand() && player.getHandSize() != 0) playRandomTurn(player);
+                                            // play out randomly and store the number of wins
+                                            while (true) {
+                                                for (Player& plr : players) { 
+                                                    if (skipFirstTurn) skipFirstTurn = false;
+                                                    else {
+                                                        if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
+                                                            && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
+                                                            gameEnded = true;
+                                                        }
+                                                        if (!gameEnded) {
+                                                            playRandomTurn(plr); // Play the turn of a current player
+                                                            if (checkForEmptyHand() && plr.getHandSize() != 0) playRandomTurn(plr);
+                                                            if(checkForWin(plr)!= 0) {
+                                                                gameEnded = true;
+                                                                if (player.getIndex() == plr.getIndex()) numberWins++;
+                                                            }
+                                                        }
+                                                    }
+                                                    if (gameEnded) break;
+                                                }
+                                                if (gameEnded) break;
+                                            }
                                         }
 
                                         // Put the game back in the previous state
@@ -657,7 +688,6 @@ std::pair<int, int> Game::playMCGame () {
 
                                         // Reset variables
                                         gameEnded = false;
-                                        gameEnds = 0;
                                     }
                                     // If a new maximum of wins is found change the variables
                                     if (numberWins > maxWins) {
@@ -683,11 +713,32 @@ std::pair<int, int> Game::playMCGame () {
                 if (player.getIndex() == 1) totalTimeP1 += end - start;
                 else totalTimeP2 += end-start;
 
-                if (!checkForEmptyHand()) break; // If the players hand is empty he gets another turn
+                if (!(checkForEmptyHand() && player.getHandSize() != 0)) break; // If the players hand is empty he gets another turn
             }
 
             gameEnds = checkForWin(player); // End the game if the collection is complete
             if (gameEnds!=0) return std::make_pair(gameEnds,player.getIndex());
+        }
+    }
+}
+
+std::pair<int, int> Game::playRandomGame () {
+    while (true) {
+        for (Player& plr : players) { 
+            turn++;
+            if (table.drawPileEmpty() || (table.getDrawSize() <= 15 
+                && (players[0].getHandSize() == 0 || players[1].getHandSize() == 0))) {
+                return std::make_pair(0,endGame());
+            }
+            auto start = std::chrono::high_resolution_clock::now();
+            playRandomTurn(plr); // Play the turn of a current player
+            auto end = std::chrono::high_resolution_clock::now();
+            if (plr.getIndex() == 1) totalTimeP1 += end - start;
+            else totalTimeP2 += end-start;
+            if (checkForEmptyHand() && plr.getHandSize() != 0) playRandomTurn(plr);
+            if(checkForWin(plr)!= 0) {
+                return std::make_pair(checkForWin(plr),plr.getIndex());
+            }
         }
     }
 }

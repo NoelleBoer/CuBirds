@@ -222,6 +222,21 @@ public:
      * 
      */
     std::pair<int, int> playMCGame ();
+
+    /* --- RANDOM GAME LOGIC --- */
+
+    /**
+     * @brief Plays the game using random turns until there is a winner
+     * 
+     * @returns winning player and the way this player won
+     * 
+     * This function also keeps track of the time each player takes to play the game and the turn
+     * 
+     * First int is the index of the winning player or 0 for a tie
+     * Second int is 0 for win by empty deck, 1 for win by 7 different species and 2 for win by 2x3 birds
+     * 
+     */
+    std::pair<int, int> playRandomGame();
     
 
     /* --- GET FUNCTIONS --- */
